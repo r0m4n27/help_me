@@ -6,6 +6,7 @@ name = "help_me"
 version = "0.1.0"
 
 [dependencies]
-diesel = {version = "1.4.4", features = ["sqlite"]}
+anyhow = "1.0"
 dotenv = "0.15.0"
 rocket = "0.5.0-rc.1"
+sqlx = {version = "0.5", features = ["runtime-tokio-rustls", "sqlite", "macros", "migrate"]}
