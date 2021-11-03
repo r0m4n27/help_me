@@ -1,15 +1,33 @@
+use std::fmt::Debug;
+
 use rocket::{response::Responder, serde::json::Json, Catcher, Route};
 use serde::Serialize;
 use serde_json::{json, Value};
 
-use self::auth::auth_routes;
+use self::{auth::auth_routes, invite::invite_routes};
 
 mod auth;
 mod guards;
+mod invite;
 
-#[derive(Serialize, Responder)]
+#[derive(Debug, Responder)]
 #[response(status = 400, content_type = "json")]
-struct ApiError {
+pub struct ApiErrorResponse(Json<ApiError>);
+
+impl From<anyhow::Error> for ApiErrorResponse {
+    fn from(err: anyhow::Error) -> Self {
+        ApiErrorResponse(Json(ApiError::from(err)))
+    }
+}
+
+impl ApiErrorResponse {
+    pub fn new(message: String) -> Self {
+        ApiErrorResponse(Json(ApiError { message }))
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct ApiError {
     message: String,
 }
 
@@ -23,12 +41,19 @@ impl From<anyhow::Error> for ApiError {
     }
 }
 
-type ApiResult<T> = Result<Json<T>, ApiError>;
+type ApiResult<T> = Result<Json<T>, ApiErrorResponse>;
+
+// A normal function has to be used
+// because an impl block can't be used for a type outside of it's crate
+fn ok<T>(data: T) -> ApiResult<T> {
+    ApiResult::Ok(Json(data))
+}
 
 pub fn api_routes() -> Vec<Route> {
     let mut api_routes = Vec::new();
 
     api_routes.extend(add_base("/auth", auth_routes()));
+    api_routes.extend(add_base("/invites", invite_routes()));
 
     api_routes
 }

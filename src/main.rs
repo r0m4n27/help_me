@@ -4,6 +4,8 @@ extern crate rocket;
 extern crate serde;
 #[macro_use]
 extern crate sqlx;
+#[macro_use]
+extern crate anyhow;
 
 use anyhow::Result;
 use api::{api_catchers, api_routes};

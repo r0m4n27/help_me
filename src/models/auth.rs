@@ -3,14 +3,12 @@ use std::str::FromStr;
 use anyhow::Result;
 use blake2::{Blake2b, Digest};
 use chrono::{DateTime, Duration, Utc};
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use sqlx::{Pool, Sqlite};
 
-use crate::models::User;
+use super::{generate_random_string, User, UserType};
 
-use super::UserType;
 #[derive(Debug, FromRow)]
-pub struct UserToken {
+struct UserToken {
     user_name: String,
     token: String,
     expiry: String,
@@ -143,6 +141,26 @@ impl<'a> AuthQueries<'a> {
         Ok(())
     }
 
+    pub async fn is_admin(&self, token: &str) -> Result<bool> {
+        let user = query_as!(
+            User,
+            "SELECT user.*
+            FROM user
+            JOIN user_token
+            WHERE user.user_name = user_token.user_name
+                AND user_token.token = ?
+                AND user.user_type = 'admin'",
+            token
+        )
+        .fetch_optional(self.pool)
+        .await?;
+
+        match user {
+            Some(_) => Ok(true),
+            None => Ok(false),
+        }
+    }
+
     pub async fn cleanup_tokens(&self) -> Result<()> {
         let tokens = query_as!(UserToken, "SELECT * FROM user_token")
             .fetch_all(self.pool)
@@ -164,15 +182,6 @@ impl<'a> AuthQueries<'a> {
 // After two weeks the user has to login back
 fn generate_expiry() -> DateTime<Utc> {
     Utc::now() + Duration::weeks(2)
-}
-
-// https://rust-lang-nursery.github.io/rust-cookbook/algorithms/randomness.html
-fn generate_random_string(len: usize) -> String {
-    thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(len)
-        .map(char::from)
-        .collect()
 }
 
 fn hash_password(password: &str) -> String {
