@@ -44,6 +44,11 @@ impl Queries {
     }
 }
 
+// In this version of sqlx it is not possible to use Pool<Any>
+// because the query macros will create a specific instance
+// and it is not yet possible to specify the driver to any
+//
+// https://github.com/launchbadge/sqlx/issues/964
 pub async fn create_sqlite_pool(connection_url: &str) -> Result<Pool<Sqlite>> {
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
