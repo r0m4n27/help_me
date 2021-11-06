@@ -24,7 +24,7 @@ async fn get_user(user: Result<UserGuard<'_>>, queries: &State<Queries>) -> ApiR
 
 #[delete("/")]
 async fn delete_user(user: Result<UserGuard<'_>>, queries: &State<Queries>) -> ApiResult<Value> {
-    queries.user.delete_user(&user?).await?;
+    queries.user.delete_user_token(&user?).await?;
     ok(json!({}))
 }
 

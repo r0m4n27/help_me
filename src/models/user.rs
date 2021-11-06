@@ -1,5 +1,5 @@
 use anyhow::Result;
-use sqlx::{Pool, Sqlite};
+use sqlx::{query, query_as, Pool, Sqlite};
 
 use crate::models::hash_password;
 
@@ -14,8 +14,8 @@ impl<'a> UserQueries<'a> {
         UserQueries { pool }
     }
 
-    async fn get_user_optional(&self, token: &str) -> Result<Option<User>> {
-        let user = query_as!(
+    pub async fn get_user(&self, token: &str) -> Result<User> {
+        query_as!(
             User,
             "SELECT user.*
             FROM user
@@ -25,21 +25,32 @@ impl<'a> UserQueries<'a> {
             token
         )
         .fetch_optional(self.pool)
-        .await?;
-
-        Ok(user)
+        .await
+        .map_err(|err| err.into())
+        .and_then(|user| user.ok_or_else(|| anyhow!("User for token {} not found!", token)))
     }
 
-    pub async fn get_user(&self, token: &str) -> Result<User> {
-        self.get_user_optional(token)
-            .await?
-            .ok_or_else(|| anyhow!("User for token {} not found!", token))
+    pub async fn get_users(&self) -> Result<Vec<User>> {
+        query_as!(
+            User,
+            "SELECT *
+            FROM user"
+        )
+        .fetch_all(self.pool)
+        .await
+        .map_err(|err| err.into())
     }
 
-    pub async fn delete_user(&self, token: &str) -> Result<()> {
-        let user = self.get_user_result(token).await?;
+    pub async fn delete_user_token(&self, token: &str) -> Result<()> {
+        let user = self.get_user(token).await?;
 
-        query!("DELETE FROM user WHERE user_name = ?", user.user_name)
+        self.delete_user_user_name(&user.user_name).await?;
+
+        Ok(())
+    }
+
+    pub async fn delete_user_user_name(&self, user_name: &str) -> Result<()> {
+        query!("DELETE FROM user WHERE user_name = ?", user_name)
             .execute(self.pool)
             .await?;
 
@@ -47,7 +58,7 @@ impl<'a> UserQueries<'a> {
     }
 
     pub async fn update_username(&self, token: &str, new_username: &str) -> Result<()> {
-        let user = self.get_user_result(token).await?;
+        let user = self.get_user(token).await?;
 
         query!(
             "UPDATE user
@@ -63,14 +74,14 @@ impl<'a> UserQueries<'a> {
     }
 
     pub async fn update_password(&self, token: &str, new_password: &str) -> Result<()> {
-        let user = self.get_user_result(token).await?;
+        let user = self.get_user(token).await?;
 
         let hashed_password = hash_password(new_password);
         query!(
             "UPDATE user
             SET password_hash = $1
             WHERE user_name = $2",
-            new_password,
+            hashed_password,
             user.user_name
         )
         .execute(self.pool)
