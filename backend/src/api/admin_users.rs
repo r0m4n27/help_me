@@ -3,7 +3,10 @@ use serde_json::{json, Value};
 
 use crate::models::{Queries, User};
 
-use super::{guards::AdminGuard, ok, ApiError, ApiResult};
+use super::{
+    api_result::{ok, ApiError, ApiResult},
+    guards::AdminGuard,
+};
 
 #[derive(Deserialize)]
 struct DeleteUserForm {

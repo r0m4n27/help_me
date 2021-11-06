@@ -3,12 +3,12 @@ use std::num::NonZeroI64;
 use rocket::{serde::json::Json, Route, State};
 use serde_json::{json, Value};
 
-use crate::{
-    api::ApiError,
-    models::{Queries, Task},
-};
+use crate::models::{Queries, Task};
 
-use super::{guards::UserGuard, ok, ApiResult};
+use super::{
+    api_result::{ok, ApiError, ApiResult},
+    guards::UserGuard,
+};
 
 #[derive(Deserialize)]
 struct CreateTaskForm {

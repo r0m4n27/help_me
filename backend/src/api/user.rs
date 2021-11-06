@@ -1,12 +1,12 @@
 use rocket::{serde::json::Json, Route, State};
 use serde_json::{json, Value};
 
-use crate::{
-    api::ok,
-    models::{Queries, User},
-};
+use crate::models::{Queries, User};
 
-use super::{guards::UserGuard, ApiError, ApiResult};
+use super::{
+    api_result::{ok, ApiError, ApiResult},
+    guards::UserGuard,
+};
 
 #[derive(Deserialize)]
 struct ModifyUserForm {

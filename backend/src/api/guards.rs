@@ -8,7 +8,7 @@ use std::ops::Deref;
 
 use crate::models::Queries;
 
-use super::{ApiError, ErrorMessage};
+use super::api_result::{ApiError, ErrorMessage};
 
 pub struct UserGuard<'r>(pub &'r str);
 

@@ -2,7 +2,7 @@ use rocket::{Route, State};
 
 use crate::{api::guards::AdminGuard, models::Queries};
 
-use super::{ok, ApiError, ApiResult};
+use super::api_result::{ok, ApiError, ApiResult};
 use crate::models::Invite;
 
 #[get("/")]

@@ -1,10 +1,11 @@
 use rocket::{serde::json::Json, Route, State};
 use serde_json::{json, Value};
 
-use super::{ok, ApiError, ApiResult, ErrorMessage};
-use crate::{
-    api::guards::UserGuard,
-    models::{Queries, UserType},
+use crate::models::{Queries, UserType};
+
+use super::{
+    api_result::{ok, ApiError, ApiResult, ErrorMessage},
+    guards::UserGuard,
 };
 
 #[derive(Serialize)]
