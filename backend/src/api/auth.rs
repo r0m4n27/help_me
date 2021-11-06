@@ -1,7 +1,7 @@
 use rocket::{serde::json::Json, Route, State};
 use serde_json::{json, Value};
 
-use super::{ok, ApiError, ApiResult};
+use super::{ok, ApiError, ApiResult, ErrorMessage};
 use crate::{
     api::guards::UserGuard,
     models::{Queries, UserType},
@@ -37,9 +37,9 @@ async fn register(data: Json<RegisterData>, queries: &State<Queries>) -> ApiResu
         if queries.invite.invite_exists(invite_code).await? {
             queries.invite.delete_invite(invite_code).await?;
         } else {
-            return Err(ApiError::BadRequest {
-                message: "Wrong invite_code provided!".to_string(),
-            });
+            return Err(ApiError::BadRequest(ErrorMessage::new(
+                "Wrong invite_code provided!".to_string(),
+            )));
         }
     }
 

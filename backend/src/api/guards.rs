@@ -8,7 +8,7 @@ use std::ops::Deref;
 
 use crate::models::Queries;
 
-use super::ApiError;
+use super::{ApiError, ErrorMessage};
 
 pub struct UserGuard<'r>(pub &'r str);
 
@@ -54,9 +54,7 @@ impl<'r> FromRequest<'r> for UserGuard<'r> {
         } else {
             Outcome::Failure((
                 Status::InternalServerError,
-                ApiError::BadRequest {
-                    message: "Provided token is invalid!".to_string(),
-                },
+                ApiError::BadRequest(ErrorMessage::new("Provided token is invalid!".to_string())),
             ))
         }
     }
@@ -94,9 +92,9 @@ impl<'r> FromRequest<'r> for AdminGuard<'r> {
         } else {
             Outcome::Failure((
                 Status::InternalServerError,
-                ApiError::BadRequest {
-                    message: "Authenticated user is not an admin!".to_string(),
-                },
+                ApiError::BadRequest(ErrorMessage::new(
+                    "Authenticated user is not an admin!".to_string(),
+                )),
             ))
         }
     }

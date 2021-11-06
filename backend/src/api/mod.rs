@@ -18,27 +18,37 @@ mod invite;
 mod tasks;
 mod user;
 
-#[derive(Debug, Responder, Serialize)]
+#[derive(Debug, Responder)]
 pub enum ApiError {
     #[response(status = 500, content_type = "json")]
-    Database { message: String },
+    Database(Json<ErrorMessage>),
     #[response(status = 404, content_type = "json")]
-    NotFound { message: String },
+    NotFound(Json<ErrorMessage>),
     #[response(status = 400, content_type = "json")]
-    BadRequest { message: String },
+    BadRequest(Json<ErrorMessage>),
 }
 
 impl From<QueriesError> for ApiError {
     fn from(err: QueriesError) -> Self {
         match err {
-            QueriesError::Database(_) => ApiError::Database {
-                message: "Databse couldn't handle request!".to_string(),
-            },
+            QueriesError::Database(_) => ApiError::Database(ErrorMessage::new(
+                "Database couldn't handle request!".to_string(),
+            )),
             // Thiserror just forwards the internal error
             // so we don't need to call err.to_string()
-            QueriesError::ItemNotFound(err) => ApiError::NotFound { message: err },
-            QueriesError::IllegalState(err) => ApiError::BadRequest { message: err },
+            QueriesError::ItemNotFound(err) => ApiError::NotFound(ErrorMessage::new(err)),
+            QueriesError::IllegalState(err) => ApiError::BadRequest(ErrorMessage::new(err)),
         }
+    }
+}
+#[derive(Debug, Serialize)]
+pub struct ErrorMessage {
+    message: String,
+}
+
+impl ErrorMessage {
+    fn new(message: String) -> Json<Self> {
+        Json(ErrorMessage { message })
     }
 }
 
