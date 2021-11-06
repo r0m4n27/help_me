@@ -1,7 +1,6 @@
-use anyhow::Result;
 use sqlx::{Pool, Sqlite};
 
-use super::generate_random_string;
+use super::{generate_random_string, QueriesResult};
 
 #[derive(Debug, FromRow, Serialize)]
 pub struct Invite {
@@ -17,7 +16,7 @@ impl<'a> InviteQueries<'a> {
         InviteQueries { pool }
     }
 
-    pub async fn get_invites(&self) -> Result<Vec<Invite>> {
+    pub async fn get_invites(&self) -> QueriesResult<Vec<Invite>> {
         let invites = query_as!(Invite, "SELECT * FROM invite")
             .fetch_all(self.pool)
             .await?;
@@ -25,7 +24,7 @@ impl<'a> InviteQueries<'a> {
         Ok(invites)
     }
 
-    pub async fn delete_invite(&self, invite_code: &str) -> Result<()> {
+    pub async fn delete_invite(&self, invite_code: &str) -> QueriesResult<()> {
         query!(
             "DELETE FROM invite
             WHERE invite_code = ?",
@@ -37,7 +36,7 @@ impl<'a> InviteQueries<'a> {
         Ok(())
     }
 
-    pub async fn create_invite(&self) -> Result<Invite> {
+    pub async fn create_invite(&self) -> QueriesResult<Invite> {
         let invite_code = generate_random_string(12);
 
         query!(
@@ -51,7 +50,7 @@ impl<'a> InviteQueries<'a> {
         Ok(Invite { invite_code })
     }
 
-    pub async fn invite_exists(&self, invite_code: &str) -> Result<bool> {
+    pub async fn invite_exists(&self, invite_code: &str) -> QueriesResult<bool> {
         let invite = query_as!(
             Invite,
             "SELECT * FROM invite

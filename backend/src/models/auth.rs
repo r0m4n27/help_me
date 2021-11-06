@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
-use anyhow::Result;
 use chrono::{DateTime, Duration, Utc};
 use sqlx::{Pool, Sqlite};
 
 use crate::models::hash_password;
 
-use super::{generate_random_string, User, UserType};
+use super::{generate_random_string, QueriesError, QueriesResult, User, UserType};
 
 #[derive(Debug, FromRow)]
 struct UserToken {
@@ -37,7 +36,7 @@ impl<'a> AuthQueries<'a> {
         user_name: &str,
         password: &str,
         user_type: UserType,
-    ) -> Result<()> {
+    ) -> QueriesResult<()> {
         let password_hash = hash_password(password);
         let user_type_string = user_type.to_string();
 
@@ -54,7 +53,7 @@ impl<'a> AuthQueries<'a> {
         Ok(())
     }
 
-    pub async fn login(&self, user_name: &str, password: &str) -> Result<String> {
+    pub async fn login(&self, user_name: &str, password: &str) -> QueriesResult<String> {
         let user = query_as!(
             User,
             "SELECT * FROM user
@@ -72,17 +71,23 @@ impl<'a> AuthQueries<'a> {
         match user {
             Some(user) => {
                 if user.password_hash != password_hash {
-                    Err(anyhow::anyhow!("Password of {} is wrong!", user_name))
+                    Err(QueriesError::IllegalState(format!(
+                        "Password of {} is wrong!",
+                        user_name
+                    )))
                 } else {
                     Ok(self.create_token(user_name).await?)
                 }
             }
 
-            None => Err(anyhow::anyhow!("Can't find user {}", user_name)),
+            None => Err(QueriesError::ItemNotFound(format!(
+                "Can't find user {}",
+                user_name
+            ))),
         }
     }
 
-    pub async fn logout(&self, token: &str) -> Result<()> {
+    pub async fn logout(&self, token: &str) -> QueriesResult<()> {
         query!(
             "DELETE FROM user_token
             WHERE token = ?",
@@ -94,7 +99,7 @@ impl<'a> AuthQueries<'a> {
         Ok(())
     }
 
-    pub async fn create_token(&self, user_name: &str) -> Result<String> {
+    pub async fn create_token(&self, user_name: &str) -> QueriesResult<String> {
         let expiry = generate_expiry().to_string();
         let token = generate_random_string(32);
 
@@ -110,7 +115,7 @@ impl<'a> AuthQueries<'a> {
         Ok(token)
     }
 
-    pub async fn is_token_valid(&self, token: &str) -> Result<bool> {
+    pub async fn is_token_valid(&self, token: &str) -> QueriesResult<bool> {
         let token = query_as!(
             UserToken,
             "SELECT * FROM user_token
@@ -126,7 +131,7 @@ impl<'a> AuthQueries<'a> {
         }
     }
 
-    pub async fn refresh_token_expiry(&self, token: &str) -> Result<()> {
+    pub async fn refresh_token_expiry(&self, token: &str) -> QueriesResult<()> {
         let expiry = generate_expiry().to_string();
 
         query!(
@@ -142,7 +147,7 @@ impl<'a> AuthQueries<'a> {
         Ok(())
     }
 
-    pub async fn is_admin(&self, token: &str) -> Result<bool> {
+    pub async fn is_admin(&self, token: &str) -> QueriesResult<bool> {
         let user = query_as!(
             User,
             "SELECT user.*
@@ -162,7 +167,7 @@ impl<'a> AuthQueries<'a> {
         }
     }
 
-    pub async fn cleanup_tokens(&self) -> Result<()> {
+    pub async fn cleanup_tokens(&self) -> QueriesResult<()> {
         let tokens = query_as!(UserToken, "SELECT * FROM user_token")
             .fetch_all(self.pool)
             .await?;
@@ -179,7 +184,7 @@ impl<'a> AuthQueries<'a> {
         Ok(())
     }
 
-    pub async fn invalidate_tokens(&self, user_name: &str) -> Result<()> {
+    pub async fn invalidate_tokens(&self, user_name: &str) -> QueriesResult<()> {
         query!("DELETE FROM user_token WHERE user_name = ?", user_name)
             .execute(self.pool)
             .await?;

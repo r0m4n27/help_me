@@ -1,8 +1,7 @@
-use anyhow::Result;
 use rocket::{serde::json::Json, Route, State};
 use serde_json::{json, Value};
 
-use super::{ok, ApiErrorResponse, ApiResult};
+use super::{ok, ApiError, ApiResult};
 use crate::{
     api::guards::UserGuard,
     models::{Queries, UserType},
@@ -38,9 +37,9 @@ async fn register(data: Json<RegisterData>, queries: &State<Queries>) -> ApiResu
         if queries.invite.invite_exists(invite_code).await? {
             queries.invite.delete_invite(invite_code).await?;
         } else {
-            return Err(ApiErrorResponse::new(
-                "Wrong invite_code provided!".to_string(),
-            ));
+            return Err(ApiError::BadRequest {
+                message: "Wrong invite_code provided!".to_string(),
+            });
         }
     }
 
@@ -64,7 +63,10 @@ async fn login(data: Json<LoginData>, queries: &State<Queries>) -> ApiResult<Log
 // It is not possible to use catchers to catch failures that happen in FromRequest
 // but we can try to get an Result and use it instead
 #[post("/logout")]
-async fn logout(token: Result<UserGuard<'_>>, queries: &State<Queries>) -> ApiResult<Value> {
+async fn logout(
+    token: Result<UserGuard<'_>, ApiError>,
+    queries: &State<Queries>,
+) -> ApiResult<Value> {
     queries.auth.logout(&token?).await?;
 
     ok(json!({}))
@@ -72,7 +74,7 @@ async fn logout(token: Result<UserGuard<'_>>, queries: &State<Queries>) -> ApiRe
 
 #[post("/invalidate")]
 async fn invalidate(
-    user_guard: Result<UserGuard<'_>>,
+    user_guard: Result<UserGuard<'_>, ApiError>,
     queries: &State<Queries>,
 ) -> ApiResult<Value> {
     let user = queries.user.get_user(&user_guard?).await?;

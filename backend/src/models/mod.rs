@@ -1,7 +1,6 @@
-use anyhow::Result;
 use blake2::{Blake2b, Digest};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
-use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{self, sqlite::SqlitePoolOptions, Pool, Sqlite};
 
 use self::{auth::AuthQueries, invite::InviteQueries, task::TaskQueries, user::UserQueries};
 
@@ -12,6 +11,18 @@ mod user;
 
 pub use invite::Invite;
 pub use task::Task;
+
+#[derive(Error, Debug)]
+pub enum QueriesError {
+    #[error("Error with the database occured: {0}")]
+    Database(#[from] sqlx::Error),
+    #[error("{0}")]
+    ItemNotFound(String),
+    #[error("{0}")]
+    IllegalState(String),
+}
+
+type QueriesResult<T> = Result<T, QueriesError>;
 
 #[derive(Debug, FromRow, Serialize)]
 pub struct User {
@@ -60,7 +71,7 @@ impl Queries {
 // and it is not yet possible to specify the driver to any
 //
 // https://github.com/launchbadge/sqlx/issues/964
-pub async fn create_sqlite_pool(connection_url: &str) -> Result<Pool<Sqlite>> {
+pub async fn create_sqlite_pool(connection_url: &str) -> Result<Pool<Sqlite>, QueriesError> {
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(connection_url)

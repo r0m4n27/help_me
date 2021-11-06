@@ -8,6 +8,8 @@ use std::ops::Deref;
 
 use crate::models::Queries;
 
+use super::ApiError;
+
 pub struct UserGuard<'r>(pub &'r str);
 
 impl<'r> Deref for UserGuard<'r> {
@@ -20,7 +22,7 @@ impl<'r> Deref for UserGuard<'r> {
 
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for UserGuard<'r> {
-    type Error = anyhow::Error;
+    type Error = ApiError;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<UserGuard<'r>, Self::Error> {
         // We have to use try_outcome because FromResidual for '?' is a nightly feature
@@ -32,21 +34,30 @@ impl<'r> FromRequest<'r> for UserGuard<'r> {
             .and_then(|text| extract_bearer_token(text))
             .or_forward(()));
 
+        // We don't really care about the status
+        // because everywhere a Result guard is used
         let token_valid = try_outcome!(queries
             .auth
             .is_token_valid(token)
             .await
-            .into_outcome(Status::BadRequest));
+            .map_err(|err| err.into())
+            .into_outcome(Status::InternalServerError));
 
         if token_valid {
             queries
                 .auth
                 .refresh_token_expiry(token)
                 .await
-                .into_outcome(Status::BadRequest)
+                .map_err(|err| err.into())
+                .into_outcome(Status::InternalServerError)
                 .map(|_| UserGuard(token))
         } else {
-            Outcome::Failure((Status::BadRequest, anyhow!("Provided token is invalid!")))
+            Outcome::Failure((
+                Status::InternalServerError,
+                ApiError::BadRequest {
+                    message: "Provided token is invalid!".to_string(),
+                },
+            ))
         }
     }
 }
@@ -63,7 +74,7 @@ impl<'r> Deref for AdminGuard<'r> {
 
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for AdminGuard<'r> {
-    type Error = anyhow::Error;
+    type Error = ApiError;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<AdminGuard<'r>, Self::Error> {
         // We have to use try_outcome because FromResidual for '?' is a nightly feature
@@ -75,14 +86,17 @@ impl<'r> FromRequest<'r> for AdminGuard<'r> {
             .auth
             .is_admin(user.0)
             .await
-            .into_outcome(Status::BadRequest));
+            .map_err(|err| err.into())
+            .into_outcome(Status::InternalServerError));
 
         if is_admin {
             Outcome::Success(AdminGuard(user.0))
         } else {
             Outcome::Failure((
-                Status::BadRequest,
-                anyhow!("Authenticated user is not an admin!"),
+                Status::InternalServerError,
+                ApiError::BadRequest {
+                    message: "Authenticated user is not an admin!".to_string(),
+                },
             ))
         }
     }

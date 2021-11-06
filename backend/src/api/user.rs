@@ -1,4 +1,3 @@
-use anyhow::Result;
 use rocket::{serde::json::Json, Route, State};
 use serde_json::{json, Value};
 
@@ -7,7 +6,7 @@ use crate::{
     models::{Queries, User},
 };
 
-use super::{guards::UserGuard, ApiResult};
+use super::{guards::UserGuard, ApiError, ApiResult};
 
 #[derive(Deserialize)]
 struct ModifyUserForm {
@@ -16,21 +15,27 @@ struct ModifyUserForm {
 }
 
 #[get("/")]
-async fn get_user(user: Result<UserGuard<'_>>, queries: &State<Queries>) -> ApiResult<User> {
+async fn get_user(
+    user: Result<UserGuard<'_>, ApiError>,
+    queries: &State<Queries>,
+) -> ApiResult<User> {
     let db_user = queries.user.get_user(&user?).await?;
 
     ok(db_user)
 }
 
 #[delete("/")]
-async fn delete_user(user: Result<UserGuard<'_>>, queries: &State<Queries>) -> ApiResult<Value> {
+async fn delete_user(
+    user: Result<UserGuard<'_>, ApiError>,
+    queries: &State<Queries>,
+) -> ApiResult<Value> {
     queries.user.delete_user_token(&user?).await?;
     ok(json!({}))
 }
 
 #[patch("/", data = "<data>")]
 async fn modify_user(
-    user: Result<UserGuard<'_>>,
+    user: Result<UserGuard<'_>, ApiError>,
     queries: &State<Queries>,
     data: Json<ModifyUserForm>,
 ) -> ApiResult<User> {

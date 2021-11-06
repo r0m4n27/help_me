@@ -1,10 +1,9 @@
-use anyhow::Result;
 use rocket::{serde::json::Json, Route, State};
 use serde_json::{json, Value};
 
 use crate::models::{Queries, User};
 
-use super::{guards::AdminGuard, ok, ApiResult};
+use super::{guards::AdminGuard, ok, ApiError, ApiResult};
 
 #[derive(Deserialize)]
 struct DeleteUserForm {
@@ -13,7 +12,7 @@ struct DeleteUserForm {
 
 #[get("/users")]
 async fn get_users(
-    admin: Result<AdminGuard<'_>>,
+    admin: Result<AdminGuard<'_>, ApiError>,
     queries: &State<Queries>,
 ) -> ApiResult<Vec<User>> {
     admin?;
@@ -24,7 +23,7 @@ async fn get_users(
 
 #[delete("/users", data = "<data>")]
 async fn delete_user(
-    admin: Result<AdminGuard<'_>>,
+    admin: Result<AdminGuard<'_>, ApiError>,
     queries: &State<Queries>,
     data: Json<DeleteUserForm>,
 ) -> ApiResult<Value> {

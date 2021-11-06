@@ -1,7 +1,8 @@
-use anyhow::Result;
 use sqlx::{Pool, Sqlite};
 
-use super::generate_random_string;
+use crate::models::QueriesError;
+
+use super::{generate_random_string, QueriesResult};
 
 #[derive(Debug, FromRow, Serialize)]
 pub struct Task {
@@ -34,12 +35,14 @@ pub struct TaskQueries<'a> {
     pool: &'a Pool<Sqlite>,
 }
 
+const WRONG_PIN_MESSAGE: &str = "Wrong pin provided!";
+
 impl<'a> TaskQueries<'a> {
     pub fn new(pool: &'a Pool<Sqlite>) -> Self {
         TaskQueries { pool }
     }
 
-    pub async fn get_tasks(&self) -> Result<Vec<Task>> {
+    pub async fn get_tasks(&self) -> QueriesResult<Vec<Task>> {
         let tasks = query_as!(Task, "SELECT * from task")
             .fetch_all(self.pool)
             .await?;
@@ -47,23 +50,31 @@ impl<'a> TaskQueries<'a> {
         Ok(tasks)
     }
 
-    pub async fn get_task(&self, id: &str) -> Result<Task> {
+    pub async fn get_task(&self, id: &str) -> QueriesResult<Task> {
         query_as!(Task, "SELECT * FROM task WHERE id = ?", id)
             .fetch_optional(self.pool)
             .await
             .map_err(|err| err.into())
-            .and_then(|task| task.ok_or_else(|| anyhow!("Can't find task with id {}", id)))
+            .and_then(|task| {
+                task.ok_or_else(|| {
+                    QueriesError::ItemNotFound(format!("Can't find task with id {}", id))
+                })
+            })
     }
 
-    pub async fn create_task(&self, title: &str, body: &str, pin: i64) -> Result<Task> {
+    pub async fn create_task(&self, title: &str, body: &str, pin: i64) -> QueriesResult<Task> {
         let task_id = generate_random_string(12);
 
         if title.is_empty() {
-            return Err(anyhow!("Title can't be empty!"));
+            return Err(QueriesError::IllegalState(
+                "Title can't be empty!".to_string(),
+            ));
         }
 
         if body.is_empty() {
-            return Err(anyhow!("Title can't be empty!"));
+            return Err(QueriesError::IllegalState(
+                "Body can't be empty!".to_string(),
+            ));
         }
 
         query!(
@@ -82,11 +93,13 @@ impl<'a> TaskQueries<'a> {
         Ok(task)
     }
 
-    pub async fn start_task(&self, id: &str) -> Result<()> {
+    pub async fn start_task(&self, id: &str) -> QueriesResult<()> {
         let task = self.get_task(id).await?;
 
         if task.task_state() != TaskState::Pending {
-            return Err(anyhow!("Task state is not on pending!"));
+            return Err(QueriesError::IllegalState(
+                "Task state is not in Pending!".to_string(),
+            ));
         }
 
         query!("UPDATE task SET state = 'doing' WHERE id = ?", id)
@@ -96,15 +109,17 @@ impl<'a> TaskQueries<'a> {
         Ok(())
     }
 
-    pub async fn resolve_task(&self, id: &str, pin: i64) -> Result<()> {
+    pub async fn resolve_task(&self, id: &str, pin: i64) -> QueriesResult<()> {
         let task = self.get_task(id).await?;
 
         if task.pin != pin {
-            return Err(anyhow!("Wrong pin provided!"));
+            return Err(QueriesError::IllegalState(WRONG_PIN_MESSAGE.to_string()));
         }
 
         if task.task_state() != TaskState::Pending {
-            return Err(anyhow!("Task state is not on pending!"));
+            return Err(QueriesError::IllegalState(
+                "Task state is not in Pending!".to_string(),
+            ));
         }
 
         query!("UPDATE task SET state = 'done' WHERE id = ?", id)
@@ -114,11 +129,13 @@ impl<'a> TaskQueries<'a> {
         Ok(())
     }
 
-    pub async fn complete_task(&self, id: &str) -> Result<()> {
+    pub async fn complete_task(&self, id: &str) -> QueriesResult<()> {
         let task = self.get_task(id).await?;
 
         if task.task_state() != TaskState::Doing {
-            return Err(anyhow!("Task state is not on pending!"));
+            return Err(QueriesError::IllegalState(
+                "Task state is not in Doing!".to_string(),
+            ));
         }
 
         query!("UPDATE task SET state = 'done' WHERE id = ?", id)
@@ -128,11 +145,11 @@ impl<'a> TaskQueries<'a> {
         Ok(())
     }
 
-    pub async fn edit_title(&self, id: &str, pin: i64, title: &str) -> Result<()> {
+    pub async fn edit_title(&self, id: &str, pin: i64, title: &str) -> QueriesResult<()> {
         let task = self.get_task(id).await?;
 
         if task.pin != pin {
-            return Err(anyhow!("Wrong pin provided!"));
+            return Err(QueriesError::IllegalState(WRONG_PIN_MESSAGE.to_string()));
         }
 
         query!("UPDATE task SET title = $1 WHERE id = $2", title, id)
@@ -142,11 +159,11 @@ impl<'a> TaskQueries<'a> {
         Ok(())
     }
 
-    pub async fn edit_body(&self, id: &str, pin: i64, body: &str) -> Result<()> {
+    pub async fn edit_body(&self, id: &str, pin: i64, body: &str) -> QueriesResult<()> {
         let task = self.get_task(id).await?;
 
         if task.pin != pin {
-            return Err(anyhow!("Wrong pin provided!"));
+            return Err(QueriesError::IllegalState(WRONG_PIN_MESSAGE.to_string()));
         }
 
         query!("UPDATE task SET body = $1 WHERE id = $2", body, id)

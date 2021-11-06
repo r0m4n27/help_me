@@ -5,13 +5,13 @@ extern crate serde;
 #[macro_use]
 extern crate sqlx;
 #[macro_use]
-extern crate anyhow;
+extern crate thiserror;
 
-use anyhow::Result;
 use api::{api_catchers, api_routes};
 use dotenv::dotenv;
 use futures::executor::block_on;
 use lazy_static::lazy_static;
+use models::QueriesError;
 use sqlx::{Pool, Sqlite};
 use std::{env, time::Duration};
 use tokio::select;
@@ -34,9 +34,16 @@ lazy_static! {
     static ref POOL: Pool<Sqlite> =
         block_on(create_sqlite_pool(&DB_ADDRESS)).expect("Can't connect to db!");
 }
+#[derive(Debug, Error)]
+enum ApplicationError {
+    #[error(transparent)]
+    Queries(#[from] QueriesError),
+    #[error(transparent)]
+    Rocket(#[from] rocket::Error),
+}
 
 #[rocket::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), ApplicationError> {
     // Start both tasks and run them in parallel
     let cleanup = launch_clean_tokens();
     let rocket = launch_rocket();
@@ -48,7 +55,7 @@ async fn main() -> Result<()> {
     }
 }
 
-async fn launch_rocket() -> Result<()> {
+async fn launch_rocket() -> Result<(), ApplicationError> {
     let queries = Queries::new(&POOL);
 
     rocket::build()
@@ -63,7 +70,7 @@ async fn launch_rocket() -> Result<()> {
 
 // This job will clean up expired tokens
 // https://www.reddit.com/r/rust/comments/q0h79p/rocket_and_scheduled_tasks/
-async fn launch_clean_tokens() -> Result<()> {
+async fn launch_clean_tokens() -> Result<(), ApplicationError> {
     let queries = Queries::new(&POOL);
     // Run task every minute
     let mut interval = tokio::time::interval(Duration::from_secs(60));

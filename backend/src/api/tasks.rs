@@ -1,10 +1,12 @@
 use std::num::NonZeroI64;
 
-use anyhow::Result;
 use rocket::{serde::json::Json, Route, State};
 use serde_json::{json, Value};
 
-use crate::models::{Queries, Task};
+use crate::{
+    api::ApiError,
+    models::{Queries, Task},
+};
 
 use super::{guards::UserGuard, ok, ApiResult};
 
@@ -24,7 +26,7 @@ struct EditTaskForm {
 
 #[get("/")]
 async fn get_tasks(
-    user_guard: Result<UserGuard<'_>>,
+    user_guard: Result<UserGuard<'_>, ApiError>,
     queries: &State<Queries>,
 ) -> ApiResult<Vec<Task>> {
     user_guard?;
@@ -64,7 +66,7 @@ async fn resolve_task(
 
 #[post("/<task_id>/start")]
 async fn start_task(
-    user_guard: Result<UserGuard<'_>>,
+    user_guard: Result<UserGuard<'_>, ApiError>,
     queries: &State<Queries>,
     task_id: String,
 ) -> ApiResult<Value> {
@@ -76,7 +78,7 @@ async fn start_task(
 
 #[post("/<task_id>/complete")]
 async fn complete_task(
-    user_guard: Result<UserGuard<'_>>,
+    user_guard: Result<UserGuard<'_>, ApiError>,
     queries: &State<Queries>,
     task_id: String,
 ) -> ApiResult<Value> {

@@ -4,6 +4,8 @@ use rocket::{response::Responder, serde::json::Json, Catcher, Route};
 use serde::Serialize;
 use serde_json::{json, Value};
 
+use crate::models::QueriesError;
+
 use self::{
     admin_users::admin_routes, auth::auth_routes, invite::invite_routes, tasks::tasks_routes,
     user::user_routes,
@@ -16,38 +18,31 @@ mod invite;
 mod tasks;
 mod user;
 
-#[derive(Debug, Responder)]
-#[response(status = 400, content_type = "json")]
-pub struct ApiErrorResponse(Json<ApiError>);
-
-impl From<anyhow::Error> for ApiErrorResponse {
-    fn from(err: anyhow::Error) -> Self {
-        ApiErrorResponse(Json(ApiError::from(err)))
-    }
+#[derive(Debug, Responder, Serialize)]
+pub enum ApiError {
+    #[response(status = 500, content_type = "json")]
+    Database { message: String },
+    #[response(status = 404, content_type = "json")]
+    NotFound { message: String },
+    #[response(status = 400, content_type = "json")]
+    BadRequest { message: String },
 }
 
-impl ApiErrorResponse {
-    pub fn new(message: String) -> Self {
-        ApiErrorResponse(Json(ApiError { message }))
-    }
-}
-
-#[derive(Debug, Serialize)]
-pub struct ApiError {
-    message: String,
-}
-
-// ThisError should be used instead of anyhow
-// otherwise a random user can get internal errors
-impl From<anyhow::Error> for ApiError {
-    fn from(err: anyhow::Error) -> Self {
-        ApiError {
-            message: err.to_string(),
+impl From<QueriesError> for ApiError {
+    fn from(err: QueriesError) -> Self {
+        match err {
+            QueriesError::Database(_) => ApiError::Database {
+                message: "Databse couldn't handle request!".to_string(),
+            },
+            // Thiserror just forwards the internal error
+            // so we don't need to call err.to_string()
+            QueriesError::ItemNotFound(err) => ApiError::NotFound { message: err },
+            QueriesError::IllegalState(err) => ApiError::BadRequest { message: err },
         }
     }
 }
 
-type ApiResult<T> = Result<Json<T>, ApiErrorResponse>;
+type ApiResult<T> = Result<Json<T>, ApiError>;
 
 // A normal function has to be used
 // because an impl block can't be used for a type outside of it's crate

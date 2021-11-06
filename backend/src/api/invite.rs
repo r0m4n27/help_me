@@ -1,14 +1,13 @@
-use anyhow::Result;
 use rocket::{Route, State};
 
 use crate::{api::guards::AdminGuard, models::Queries};
 
-use super::{ok, ApiResult};
+use super::{ok, ApiError, ApiResult};
 use crate::models::Invite;
 
 #[get("/")]
 async fn invites(
-    admin: Result<AdminGuard<'_>>,
+    admin: Result<AdminGuard<'_>, ApiError>,
     queries: &State<Queries>,
 ) -> ApiResult<Vec<Invite>> {
     admin?;
@@ -19,7 +18,7 @@ async fn invites(
 
 #[delete("/<invite_code>")]
 async fn delete_invite(
-    admin: Result<AdminGuard<'_>>,
+    admin: Result<AdminGuard<'_>, ApiError>,
     queries: &State<Queries>,
     invite_code: String,
 ) -> ApiResult<()> {
@@ -31,7 +30,7 @@ async fn delete_invite(
 
 #[post("/")]
 async fn create_invite(
-    admin: Result<AdminGuard<'_>>,
+    admin: Result<AdminGuard<'_>, ApiError>,
     queries: &State<Queries>,
 ) -> ApiResult<Invite> {
     admin?;
