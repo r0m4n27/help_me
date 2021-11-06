@@ -178,6 +178,14 @@ impl<'a> AuthQueries<'a> {
 
         Ok(())
     }
+
+    pub async fn invalidate_tokens(&self, user_name: &str) -> Result<()> {
+        query!("DELETE FROM user_token WHERE user_name = ?", user_name)
+            .execute(self.pool)
+            .await?;
+
+        Ok(())
+    }
 }
 
 // After two weeks the user has to login back

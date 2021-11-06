@@ -70,6 +70,18 @@ async fn logout(token: Result<UserGuard<'_>>, queries: &State<Queries>) -> ApiRe
     ok(json!({}))
 }
 
+#[post("/invalidate")]
+async fn invalidate(
+    user_guard: Result<UserGuard<'_>>,
+    queries: &State<Queries>,
+) -> ApiResult<Value> {
+    let user = queries.user.get_user(&user_guard?).await?;
+
+    queries.auth.invalidate_tokens(&user.user_name).await?;
+
+    ok(json!({}))
+}
+
 pub fn auth_routes() -> Vec<Route> {
-    routes![register, login, logout]
+    routes![register, login, logout, invalidate]
 }
