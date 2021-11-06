@@ -3,13 +3,15 @@ use blake2::{Blake2b, Digest};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 
-use self::{auth::AuthQueries, invite::InviteQueries, user::UserQueries};
+use self::{auth::AuthQueries, invite::InviteQueries, task::TaskQueries, user::UserQueries};
 
 mod auth;
 mod invite;
+mod task;
 mod user;
 
 pub use invite::Invite;
+pub use task::Task;
 
 #[derive(Debug, FromRow, Serialize)]
 pub struct User {
@@ -39,6 +41,7 @@ pub struct Queries {
     pub auth: AuthQueries<'static>,
     pub invite: InviteQueries<'static>,
     pub user: UserQueries<'static>,
+    pub task: TaskQueries<'static>,
 }
 
 impl Queries {
@@ -47,6 +50,7 @@ impl Queries {
             auth: AuthQueries::new(pool),
             invite: InviteQueries::new(pool),
             user: UserQueries::new(pool),
+            task: TaskQueries::new(pool),
         }
     }
 }
