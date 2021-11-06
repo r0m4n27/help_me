@@ -8,7 +8,7 @@ use std::ops::Deref;
 
 use crate::models::Queries;
 
-pub struct User<'r>(&'r str);
+pub struct User<'r>(pub &'r str);
 
 impl<'r> Deref for User<'r> {
     type Target = str;
@@ -51,7 +51,7 @@ impl<'r> FromRequest<'r> for User<'r> {
     }
 }
 
-pub struct Admin<'r>(&'r str);
+pub struct Admin<'r>(pub &'r str);
 
 impl<'r> Deref for Admin<'r> {
     type Target = str;

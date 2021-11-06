@@ -1,17 +1,21 @@
 use anyhow::Result;
+use blake2::{Blake2b, Digest};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 
-use self::{auth::AuthQueries, invite::InviteQueries};
+use self::{auth::AuthQueries, invite::InviteQueries, user::UserQueries};
 
 mod auth;
-pub mod invite;
+mod invite;
+mod user;
+
+pub use invite::Invite;
 
 #[derive(Debug, FromRow)]
 pub struct User {
-    user_name: String,
+    pub user_name: String,
     password_hash: String,
-    user_type: String,
+    pub user_type: String,
 }
 
 pub enum UserType {
@@ -33,6 +37,7 @@ pub struct Queries {
     // The static is necessary for rocket
     pub auth: AuthQueries<'static>,
     pub invite: InviteQueries<'static>,
+    pub user: UserQueries<'static>,
 }
 
 impl Queries {
@@ -40,6 +45,7 @@ impl Queries {
         Queries {
             auth: AuthQueries::new(pool),
             invite: InviteQueries::new(pool),
+            user: UserQueries::new(pool),
         }
     }
 }
@@ -65,4 +71,8 @@ fn generate_random_string(len: usize) -> String {
         .take(len)
         .map(char::from)
         .collect()
+}
+
+fn hash_password(password: &str) -> String {
+    format!("{:x}", Blake2b::digest(password.as_bytes()))
 }

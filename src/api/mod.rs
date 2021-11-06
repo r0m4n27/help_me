@@ -4,11 +4,12 @@ use rocket::{response::Responder, serde::json::Json, Catcher, Route};
 use serde::Serialize;
 use serde_json::{json, Value};
 
-use self::{auth::auth_routes, invite::invite_routes};
+use self::{auth::auth_routes, invite::invite_routes, user::user_routes};
 
 mod auth;
 mod guards;
 mod invite;
+mod user;
 
 #[derive(Debug, Responder)]
 #[response(status = 400, content_type = "json")]
@@ -45,8 +46,8 @@ type ApiResult<T> = Result<Json<T>, ApiErrorResponse>;
 
 // A normal function has to be used
 // because an impl block can't be used for a type outside of it's crate
-fn ok<T>(data: T) -> ApiResult<T> {
-    ApiResult::Ok(Json(data))
+fn ok<T, R: From<T>>(data: T) -> ApiResult<R> {
+    ApiResult::Ok(Json(R::from(data)))
 }
 
 pub fn api_routes() -> Vec<Route> {
@@ -54,6 +55,7 @@ pub fn api_routes() -> Vec<Route> {
 
     api_routes.extend(add_base("/auth", auth_routes()));
     api_routes.extend(add_base("/invites", invite_routes()));
+    api_routes.extend(add_base("/user", user_routes()));
 
     api_routes
 }

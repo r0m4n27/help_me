@@ -1,9 +1,10 @@
 use std::str::FromStr;
 
 use anyhow::Result;
-use blake2::{Blake2b, Digest};
 use chrono::{DateTime, Duration, Utc};
 use sqlx::{Pool, Sqlite};
+
+use crate::models::hash_password;
 
 use super::{generate_random_string, User, UserType};
 
@@ -182,8 +183,4 @@ impl<'a> AuthQueries<'a> {
 // After two weeks the user has to login back
 fn generate_expiry() -> DateTime<Utc> {
     Utc::now() + Duration::weeks(2)
-}
-
-fn hash_password(password: &str) -> String {
-    format!("{:x}", Blake2b::digest(password.as_bytes()))
 }
