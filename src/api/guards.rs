@@ -8,9 +8,9 @@ use std::ops::Deref;
 
 use crate::models::Queries;
 
-pub struct User<'r>(pub &'r str);
+pub struct UserGuard<'r>(pub &'r str);
 
-impl<'r> Deref for User<'r> {
+impl<'r> Deref for UserGuard<'r> {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
@@ -19,10 +19,10 @@ impl<'r> Deref for User<'r> {
 }
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for User<'r> {
+impl<'r> FromRequest<'r> for UserGuard<'r> {
     type Error = anyhow::Error;
 
-    async fn from_request(req: &'r Request<'_>) -> Outcome<User<'r>, Self::Error> {
+    async fn from_request(req: &'r Request<'_>) -> Outcome<UserGuard<'r>, Self::Error> {
         // We have to use try_outcome because FromResidual for '?' is a nightly feature
         // The compiler somehow thinks this would be '!' rather than '&Queries'
         let queries: &Queries = try_outcome!(req.rocket().state::<Queries>().or_forward(()));
@@ -44,16 +44,16 @@ impl<'r> FromRequest<'r> for User<'r> {
                 .refresh_token_expiry(token)
                 .await
                 .into_outcome(Status::BadRequest)
-                .map(|_| User(token))
+                .map(|_| UserGuard(token))
         } else {
             Outcome::Failure((Status::BadRequest, anyhow!("Provided token is invalid!")))
         }
     }
 }
 
-pub struct Admin<'r>(pub &'r str);
+pub struct AdminGuard<'r>(pub &'r str);
 
-impl<'r> Deref for Admin<'r> {
+impl<'r> Deref for AdminGuard<'r> {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
@@ -62,14 +62,14 @@ impl<'r> Deref for Admin<'r> {
 }
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for Admin<'r> {
+impl<'r> FromRequest<'r> for AdminGuard<'r> {
     type Error = anyhow::Error;
 
-    async fn from_request(req: &'r Request<'_>) -> Outcome<Admin<'r>, Self::Error> {
+    async fn from_request(req: &'r Request<'_>) -> Outcome<AdminGuard<'r>, Self::Error> {
         // We have to use try_outcome because FromResidual for '?' is a nightly feature
         // The compiler somehow thinks this would be '!' rather than '&Queries'
         let queries: &Queries = try_outcome!(req.rocket().state::<Queries>().or_forward(()));
-        let user: User = try_outcome!(req.guard::<User<'r>>().await);
+        let user: UserGuard = try_outcome!(req.guard::<UserGuard<'r>>().await);
 
         let is_admin = try_outcome!(queries
             .auth
@@ -78,7 +78,7 @@ impl<'r> FromRequest<'r> for Admin<'r> {
             .into_outcome(Status::BadRequest));
 
         if is_admin {
-            Outcome::Success(Admin(user.0))
+            Outcome::Success(AdminGuard(user.0))
         } else {
             Outcome::Failure((
                 Status::BadRequest,

@@ -11,9 +11,10 @@ mod user;
 
 pub use invite::Invite;
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, Serialize)]
 pub struct User {
     pub user_name: String,
+    #[serde(skip_serializing)]
     password_hash: String,
     pub user_type: String,
 }

@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 
 use super::{ok, ApiErrorResponse, ApiResult};
 use crate::{
-    api::guards::User,
+    api::guards::UserGuard,
     models::{Queries, UserType},
 };
 
@@ -64,7 +64,7 @@ async fn login(data: Json<LoginData>, queries: &State<Queries>) -> ApiResult<Log
 // It is not possible to use catchers to catch failures that happen in FromRequest
 // but we can try to get an Result and use it instead
 #[post("/logout")]
-async fn logout(token: Result<User<'_>>, queries: &State<Queries>) -> ApiResult<Value> {
+async fn logout(token: Result<UserGuard<'_>>, queries: &State<Queries>) -> ApiResult<Value> {
     queries.auth.logout(&token?).await?;
 
     ok(json!({}))
