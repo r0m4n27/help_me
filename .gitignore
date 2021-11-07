@@ -1,7 +1,11 @@
 /target
 .env
+
 data.db
 data.db-shm
 data.db-wal
+
 help_me.log
 user_actions.log
+
+.vscode
