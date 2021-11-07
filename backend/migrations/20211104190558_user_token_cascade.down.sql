@@ -1,4 +1,4 @@
-CREATE TEMPORARY TABLE temp AS
+CREATE TABLE temp AS
 SELECT user_name, token, expiry
 FROM user_token;
 
@@ -16,3 +16,5 @@ CREATE TABLE user_token(
 INSERT INTO user_token(user_name, token, expiry)
 SELECT user_name, token, expiry
 FROM temp;
+
+DROP TABLE temp;

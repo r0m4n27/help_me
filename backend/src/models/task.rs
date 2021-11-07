@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use chrono::{DateTime, Utc};
 use sqlx::{Pool, Sqlite};
 
 use crate::models::QueriesError;
@@ -11,6 +14,7 @@ pub struct Task {
     body: String,
     state: String,
     pin: i64,
+    created_at: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -21,13 +25,17 @@ pub enum TaskState {
 }
 
 impl Task {
-    pub fn task_state(&self) -> TaskState {
+    fn task_state(&self) -> TaskState {
         match self.state.as_str() {
             "pending" => TaskState::Pending,
             "doing" => TaskState::Doing,
             "done" => TaskState::Done,
             _ => unreachable!(),
         }
+    }
+
+    fn created_at(&self) -> DateTime<Utc> {
+        DateTime::from_str(&self.created_at).unwrap()
     }
 }
 
@@ -43,9 +51,16 @@ impl<'a> TaskQueries<'a> {
     }
 
     pub async fn get_tasks(&self) -> QueriesResult<Vec<Task>> {
-        let tasks = query_as!(Task, "SELECT * from task")
-            .fetch_all(self.pool)
-            .await?;
+        let mut tasks = query_as!(
+            Task,
+            "SELECT *
+            FROM task
+            WHERE state != 'done'"
+        )
+        .fetch_all(self.pool)
+        .await?;
+
+        tasks.sort_by_key(|task| task.created_at());
 
         debug!("Queries tasks");
 
@@ -84,13 +99,15 @@ impl<'a> TaskQueries<'a> {
             ));
         }
 
+        let now = Utc::now().to_string();
         query!(
-            "INSERT INTO task(id, title, body, state, pin)
-            VALUES ($1, $2, $3, 'pending', $4)",
+            "INSERT INTO task(id, title, body, state, pin, created_at)
+            VALUES ($1, $2, $3, 'pending', $4, $5)",
             task_id,
             title,
             body,
-            pin
+            pin,
+            now
         )
         .execute(self.pool)
         .await?;

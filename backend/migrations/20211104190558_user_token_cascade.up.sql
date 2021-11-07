@@ -1,5 +1,5 @@
 -- https://stackoverflow.com/questions/1884818/how-do-i-add-a-foreign-key-to-an-existing-sqlite-table
-CREATE TEMPORARY TABLE temp AS
+CREATE TABLE temp AS
 SELECT user_name, token, expiry
 FROM user_token;
 
@@ -19,3 +19,5 @@ CREATE TABLE user_token(
 INSERT INTO user_token(user_name, token, expiry)
 SELECT user_name, token, expiry
 FROM temp;
+
+DROP TABLE temp;
