@@ -6,6 +6,8 @@ extern crate serde;
 extern crate sqlx;
 #[macro_use]
 extern crate thiserror;
+#[macro_use]
+extern crate log;
 
 use api::{api_catchers, api_routes};
 use dotenv::dotenv;
@@ -16,9 +18,13 @@ use sqlx::{Pool, Sqlite};
 use std::{env, time::Duration};
 use tokio::select;
 
-use crate::models::{create_sqlite_pool, Queries};
+use crate::{
+    logging::setup_logging,
+    models::{create_sqlite_pool, Queries},
+};
 
 mod api;
+mod logging;
 mod models;
 
 // Necessary because of rockets manage static lifetime requierement
@@ -40,10 +46,14 @@ enum ApplicationError {
     Queries(#[from] QueriesError),
     #[error(transparent)]
     Rocket(#[from] rocket::Error),
+    #[error(transparent)]
+    Fern(#[from] fern::InitError),
 }
 
 #[rocket::main]
 async fn main() -> Result<(), ApplicationError> {
+    setup_logging()?;
+
     // Start both tasks and run them in parallel
     let cleanup = launch_clean_tokens();
     let rocket = launch_rocket();

@@ -52,6 +52,8 @@ impl<'r> FromRequest<'r> for UserGuard<'r> {
                 .into_outcome(Status::InternalServerError)
                 .map(|_| UserGuard(token))
         } else {
+            debug!("Invalid token {} provided", token);
+
             Outcome::Failure((
                 Status::InternalServerError,
                 ApiError::BadRequest(ErrorMessage::new("Provided token is invalid!".to_string())),
@@ -90,6 +92,8 @@ impl<'r> FromRequest<'r> for AdminGuard<'r> {
         if is_admin {
             Outcome::Success(AdminGuard(user.0))
         } else {
+            debug!("Provided token {} doen't belong to an admin", user.0);
+
             Outcome::Failure((
                 Status::InternalServerError,
                 ApiError::BadRequest(ErrorMessage::new(

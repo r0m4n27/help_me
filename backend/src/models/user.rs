@@ -27,7 +27,11 @@ impl<'a> UserQueries<'a> {
         .await
         .map_err(|err| err.into())
         .and_then(|user| {
-            user.ok_or_else(|| {
+            user.map(|user| {
+                debug!("Requested user {}", user.user_name);
+                user
+            })
+            .ok_or_else(|| {
                 QueriesError::ItemNotFound(format!("User for token {} not found!", token))
             })
         })
@@ -41,6 +45,10 @@ impl<'a> UserQueries<'a> {
         )
         .fetch_all(self.pool)
         .await
+        .map(|users| {
+            debug!("Requested users");
+            users
+        })
         .map_err(|err| err.into())
     }
 
@@ -49,6 +57,8 @@ impl<'a> UserQueries<'a> {
 
         self.delete_user_user_name(&user.user_name).await?;
 
+        debug!("Deleted user {}", user.user_name);
+
         Ok(())
     }
 
@@ -56,6 +66,8 @@ impl<'a> UserQueries<'a> {
         query!("DELETE FROM user WHERE user_name = ?", user_name)
             .execute(self.pool)
             .await?;
+
+        debug!("Deleted user {}", user_name);
 
         Ok(())
     }
@@ -73,6 +85,8 @@ impl<'a> UserQueries<'a> {
         .execute(self.pool)
         .await?;
 
+        debug!("Updated user_name {}", new_username);
+
         Ok(())
     }
 
@@ -89,6 +103,8 @@ impl<'a> UserQueries<'a> {
         )
         .execute(self.pool)
         .await?;
+
+        debug!("Updated password_hash {}", hashed_password);
 
         Ok(())
     }

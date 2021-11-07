@@ -50,6 +50,8 @@ impl<'a> AuthQueries<'a> {
         .execute(self.pool)
         .await?;
 
+        debug!("Created new user: {}", user_name);
+
         Ok(())
     }
 
@@ -71,19 +73,30 @@ impl<'a> AuthQueries<'a> {
         match user {
             Some(user) => {
                 if user.password_hash != password_hash {
+                    debug!("Wrong password for {} used", user_name);
+
                     Err(QueriesError::IllegalState(format!(
                         "Password of {} is wrong!",
                         user_name
                     )))
                 } else {
+                    debug!("User {} logged in", user_name);
+
                     Ok(self.create_token(user_name).await?)
                 }
             }
 
-            None => Err(QueriesError::ItemNotFound(format!(
-                "Can't find user {}",
-                user_name
-            ))),
+            None => {
+                debug!(
+                    "Login for {} requested but user_name is not found!",
+                    user_name
+                );
+
+                Err(QueriesError::ItemNotFound(format!(
+                    "Can't find user {}",
+                    user_name
+                )))
+            }
         }
     }
 
@@ -95,6 +108,8 @@ impl<'a> AuthQueries<'a> {
         )
         .execute(self.pool)
         .await?;
+
+        debug!("User with {} logged out", token);
 
         Ok(())
     }
@@ -111,6 +126,8 @@ impl<'a> AuthQueries<'a> {
         )
         .execute(self.pool)
         .await?;
+
+        debug!("Created token for {}", user_name);
 
         Ok(token)
     }
@@ -143,6 +160,8 @@ impl<'a> AuthQueries<'a> {
         )
         .execute(self.pool)
         .await?;
+
+        debug!("Refreshed {} token", token);
 
         Ok(())
     }
@@ -178,6 +197,8 @@ impl<'a> AuthQueries<'a> {
                 query!("DELETE FROM user_token WHERE token = ?", token.token)
                     .execute(self.pool)
                     .await?;
+
+                debug!("Cleaned up {} token", token.token);
             }
         }
 
@@ -188,6 +209,8 @@ impl<'a> AuthQueries<'a> {
         query!("DELETE FROM user_token WHERE user_name = ?", user_name)
             .execute(self.pool)
             .await?;
+
+        debug!("Invalidate tokens for {}", user_name);
 
         Ok(())
     }

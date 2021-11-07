@@ -77,6 +77,8 @@ pub async fn create_sqlite_pool(connection_url: &str) -> Result<Pool<Sqlite>, Qu
         .connect(connection_url)
         .await?;
 
+    info!("Created poll for {}", connection_url);
+
     Ok(pool)
 }
 

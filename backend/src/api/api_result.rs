@@ -15,9 +15,13 @@ pub enum ApiError {
 impl From<QueriesError> for ApiError {
     fn from(err: QueriesError) -> Self {
         match err {
-            QueriesError::Database(_) => ApiError::Database(ErrorMessage::new(
-                "Database couldn't handle request!".to_string(),
-            )),
+            QueriesError::Database(err) => {
+                error!("Db error: {}", err);
+
+                ApiError::Database(ErrorMessage::new(
+                    "Database couldn't handle request!".to_string(),
+                ))
+            }
             // Thiserror just forwards the internal error
             // so we don't need to call err.to_string()
             QueriesError::ItemNotFound(err) => ApiError::NotFound(ErrorMessage::new(err)),

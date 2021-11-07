@@ -47,6 +47,8 @@ impl<'a> TaskQueries<'a> {
             .fetch_all(self.pool)
             .await?;
 
+        debug!("Queries tasks");
+
         Ok(tasks)
     }
 
@@ -56,7 +58,12 @@ impl<'a> TaskQueries<'a> {
             .await
             .map_err(|err| err.into())
             .and_then(|task| {
-                task.ok_or_else(|| {
+                task.map(|task| {
+                    debug!("Requested task {}", task.id);
+                    task
+                })
+                .ok_or_else(|| {
+                    debug!("Requested task {} not found", id);
                     QueriesError::ItemNotFound(format!("Can't find task with id {}", id))
                 })
             })
@@ -90,6 +97,8 @@ impl<'a> TaskQueries<'a> {
 
         let task = self.get_task(&task_id).await?;
 
+        debug!(target: "USER-ACTION", "Created task {}", task.id);
+
         Ok(task)
     }
 
@@ -105,6 +114,8 @@ impl<'a> TaskQueries<'a> {
         query!("UPDATE task SET state = 'doing' WHERE id = ?", id)
             .execute(self.pool)
             .await?;
+
+        debug!(target: "USER-ACTION", "Started task {}", task.id);
 
         Ok(())
     }
@@ -126,6 +137,8 @@ impl<'a> TaskQueries<'a> {
             .execute(self.pool)
             .await?;
 
+        debug!(target: "USER-ACTION", "Resolved task {}", task.id);
+
         Ok(())
     }
 
@@ -142,6 +155,8 @@ impl<'a> TaskQueries<'a> {
             .execute(self.pool)
             .await?;
 
+        debug!(target: "USER-ACTION", "Completed task {}", task.id);
+
         Ok(())
     }
 
@@ -156,6 +171,8 @@ impl<'a> TaskQueries<'a> {
             .execute(self.pool)
             .await?;
 
+        debug!("Edited title of {}", id);
+
         Ok(())
     }
 
@@ -169,6 +186,8 @@ impl<'a> TaskQueries<'a> {
         query!("UPDATE task SET body = $1 WHERE id = $2", body, id)
             .execute(self.pool)
             .await?;
+
+        debug!("Edited body of {}", id);
 
         Ok(())
     }

@@ -21,6 +21,8 @@ impl<'a> InviteQueries<'a> {
             .fetch_all(self.pool)
             .await?;
 
+        debug!("Queried invites");
+
         Ok(invites)
     }
 
@@ -32,6 +34,8 @@ impl<'a> InviteQueries<'a> {
         )
         .execute(self.pool)
         .await?;
+
+        debug!("Deleted invite {}", invite_code);
 
         Ok(())
     }
@@ -46,6 +50,8 @@ impl<'a> InviteQueries<'a> {
         )
         .execute(self.pool)
         .await?;
+
+        debug!("Created invite {}", invite_code);
 
         Ok(Invite { invite_code })
     }
