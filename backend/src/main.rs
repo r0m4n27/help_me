@@ -54,6 +54,9 @@ enum ApplicationError {
 async fn main() -> Result<(), ApplicationError> {
     setup_logging()?;
 
+    // Suggetions from the compiler
+    migrate!().run(&*POOL).await.expect("Can't run migrations!");
+
     // Start both tasks and run them in parallel
     let cleanup = launch_clean_tokens();
     let rocket = launch_rocket();

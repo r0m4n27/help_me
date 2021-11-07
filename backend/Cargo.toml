@@ -21,7 +21,7 @@ tokio = {version = "1.13.0", features = ["full"]}
 
 [dependencies.sqlx]
 default_features = false
-features = ["runtime-tokio-rustls", "sqlite", "macros"]
+features = ["runtime-tokio-rustls", "sqlite", "macros", "migrate"]
 version = "0.5.6"
 
 # Some version of the master branch is used
