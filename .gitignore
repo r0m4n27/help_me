@@ -9,3 +9,5 @@ help_me.log
 user_actions.log
 
 .vscode
+
+dist/

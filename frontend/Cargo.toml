@@ -1,0 +1,14 @@
+[package]
+authors = ["Roman Kolesnikov <roman.kolesnikov@hs-augsburg.de>"]
+edition = "2021"
+license = "MIT"
+name = "help_me-frontend"
+version = "0.1.0"
+
+# New features are added in very often but are not released that much
+# so we have to use the repos instead of versions :(
+[dependencies]
+yew = {git = "https://github.com/yewstack/yew.git"}
+yew-router = {git = "https://github.com/yewstack/yew.git"}
+yewdux = {git = "https://github.com/intendednull/yewdux.git"}
+yewdux-functional = {git = "https://github.com/intendednull/yewdux.git"}

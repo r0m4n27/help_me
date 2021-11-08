@@ -2,7 +2,7 @@
 authors = ["Roman Kolesnikov <roman.kolesnikov@hs-augsburg.de>"]
 edition = "2021"
 license = "MIT"
-name = "help_me"
+name = "help_me-backend"
 version = "0.1.0"
 
 [dependencies]
