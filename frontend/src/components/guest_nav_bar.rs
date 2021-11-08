@@ -41,6 +41,14 @@ fn nav_bar_brand(props: &NavBarBrandProps) -> Html {
                 <p class="title is-unselectable">{"Help Me"}</p>
             </Link<Route>>
 
+            <div class="navbar-item is-hidden-desktop">
+                <a class="has-text-light is-flex is-align-items-center"
+                    href="http://github.com/r0m4n27"
+                    target="_blank">
+                    <i class="fab fa-github-alt is-size-4"/>
+                </a>
+            </div>
+
             <a role="button"
                 class={classes!("navbar-burger", &props.expanded_class)}
                 aria-label="menu" aria-expanded="false"
@@ -65,9 +73,9 @@ fn nav_bar_items(props: &NavBarItemsProps) -> Html {
     html! {
         <div id="navbarBasic" class={classes!("navbar-menu", &props.expanded_class)}>
             <div class="navbar-end">
-                <div class="navbar-item">
+                <div class="navbar-item is-hidden-touch">
                     <a class="button is-info" href="http://github.com/r0m4n27" target="_blank">
-                        <span class="material-icons">{"code"}</span>
+                        <i class="fab fa-github-alt is-size-4"/>
                     </a>
                 </div>
 
