@@ -13,7 +13,6 @@ pub struct Task {
     title: String,
     body: String,
     state: String,
-    pin: i64,
     created_at: String,
 }
 
@@ -42,8 +41,6 @@ impl Task {
 pub struct TaskQueries<'a> {
     pool: &'a Pool<Sqlite>,
 }
-
-const WRONG_PIN_MESSAGE: &str = "Wrong pin provided!";
 
 impl<'a> TaskQueries<'a> {
     pub fn new(pool: &'a Pool<Sqlite>) -> Self {
@@ -84,7 +81,7 @@ impl<'a> TaskQueries<'a> {
             })
     }
 
-    pub async fn create_task(&self, title: &str, body: &str, pin: i64) -> QueriesResult<Task> {
+    pub async fn create_task(&self, title: &str, body: &str) -> QueriesResult<Task> {
         let task_id = generate_random_string(12);
 
         if title.is_empty() {
@@ -101,12 +98,11 @@ impl<'a> TaskQueries<'a> {
 
         let now = Utc::now().to_string();
         query!(
-            "INSERT INTO task(id, title, body, state, pin, created_at)
-            VALUES ($1, $2, $3, 'pending', $4, $5)",
+            "INSERT INTO task(id, title, body, state, created_at)
+            VALUES ($1, $2, $3, 'pending', $4)",
             task_id,
             title,
             body,
-            pin,
             now
         )
         .execute(self.pool)
@@ -137,12 +133,8 @@ impl<'a> TaskQueries<'a> {
         Ok(())
     }
 
-    pub async fn resolve_task(&self, id: &str, pin: i64) -> QueriesResult<()> {
+    pub async fn resolve_task(&self, id: &str) -> QueriesResult<()> {
         let task = self.get_task(id).await?;
-
-        if task.pin != pin {
-            return Err(QueriesError::IllegalState(WRONG_PIN_MESSAGE.to_string()));
-        }
 
         if task.task_state() != TaskState::Pending {
             return Err(QueriesError::IllegalState(
@@ -177,13 +169,7 @@ impl<'a> TaskQueries<'a> {
         Ok(())
     }
 
-    pub async fn edit_title(&self, id: &str, pin: i64, title: &str) -> QueriesResult<()> {
-        let task = self.get_task(id).await?;
-
-        if task.pin != pin {
-            return Err(QueriesError::IllegalState(WRONG_PIN_MESSAGE.to_string()));
-        }
-
+    pub async fn edit_title(&self, id: &str, title: &str) -> QueriesResult<()> {
         query!("UPDATE task SET title = $1 WHERE id = $2", title, id)
             .execute(self.pool)
             .await?;
@@ -193,13 +179,7 @@ impl<'a> TaskQueries<'a> {
         Ok(())
     }
 
-    pub async fn edit_body(&self, id: &str, pin: i64, body: &str) -> QueriesResult<()> {
-        let task = self.get_task(id).await?;
-
-        if task.pin != pin {
-            return Err(QueriesError::IllegalState(WRONG_PIN_MESSAGE.to_string()));
-        }
-
+    pub async fn edit_body(&self, id: &str, body: &str) -> QueriesResult<()> {
         query!("UPDATE task SET body = $1 WHERE id = $2", body, id)
             .execute(self.pool)
             .await?;

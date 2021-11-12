@@ -1,5 +1,3 @@
-use std::num::NonZeroI64;
-
 use rocket::{serde::json::Json, Route, State};
 use serde_json::{json, Value};
 
@@ -14,14 +12,12 @@ use super::{
 struct CreateTaskForm {
     title: String,
     body: String,
-    pin: NonZeroI64,
 }
 
 #[derive(Deserialize)]
 struct EditTaskForm {
     title: Option<String>,
     body: Option<String>,
-    pin: NonZeroI64,
 }
 
 #[get("/")]
@@ -38,10 +34,7 @@ async fn get_tasks(
 
 #[post("/", data = "<data>")]
 async fn create_task(queries: &State<Queries>, data: Json<CreateTaskForm>) -> ApiResult<Task> {
-    let task = queries
-        .task
-        .create_task(&data.title, &data.body, data.pin.into())
-        .await?;
+    let task = queries.task.create_task(&data.title, &data.body).await?;
 
     ok(task)
 }
@@ -53,13 +46,9 @@ async fn get_task(queries: &State<Queries>, task_id: String) -> ApiResult<Task> 
     ok(task)
 }
 
-#[post("/<task_id>/resolve?<pin>")]
-async fn resolve_task(
-    queries: &State<Queries>,
-    task_id: String,
-    pin: NonZeroI64,
-) -> ApiResult<Value> {
-    queries.task.resolve_task(&task_id, pin.into()).await?;
+#[post("/<task_id>/resolve")]
+async fn resolve_task(queries: &State<Queries>, task_id: String) -> ApiResult<Value> {
+    queries.task.resolve_task(&task_id).await?;
 
     ok(json!({}))
 }
@@ -95,17 +84,11 @@ async fn edit_task(
     task_id: String,
 ) -> ApiResult<Value> {
     if let Some(ref title) = data.title {
-        queries
-            .task
-            .edit_title(&task_id, data.pin.into(), title)
-            .await?;
+        queries.task.edit_title(&task_id, title).await?;
     }
 
     if let Some(ref body) = data.body {
-        queries
-            .task
-            .edit_body(&task_id, data.pin.into(), body)
-            .await?;
+        queries.task.edit_body(&task_id, body).await?;
     }
 
     ok(json!({}))
