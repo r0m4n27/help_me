@@ -14,6 +14,7 @@ use dotenv::dotenv;
 use futures::executor::block_on;
 use lazy_static::lazy_static;
 use models::QueriesError;
+use rocket_cors::CorsOptions;
 use sqlx::{Pool, Sqlite};
 use std::{env, time::Duration};
 use tokio::select;
@@ -71,8 +72,13 @@ async fn main() -> Result<(), ApplicationError> {
 async fn launch_rocket() -> Result<(), ApplicationError> {
     let queries = Queries::new(&POOL);
 
+    let cors = CorsOptions::default()
+        .to_cors()
+        .expect("Can't create cors options!");
+
     rocket::build()
         .manage(queries)
+        .attach(cors)
         .mount("/api", api_routes())
         .register("/api", api_catchers())
         .launch()

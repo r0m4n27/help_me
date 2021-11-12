@@ -14,6 +14,7 @@ futures = "0.3"
 lazy_static = "1.4.0"
 log = "0.4.14"
 rand = "0.8.4"
+rocket_cors = {git = "https://github.com/lawliet89/rocket_cors", branch = "master"}
 serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 thiserror = "1.0"
@@ -24,9 +25,9 @@ default_features = false
 features = ["runtime-tokio-rustls", "sqlite", "macros", "migrate"]
 version = "0.5.6"
 
-# Some version of the master branch is used
-# otherwise there would be emojis and color codes in the log file
+# There color codes and emojis in the log file
+# but the master branch can't be used because we need rocket_cors
+# hopefully this will be fixed in a future version
 [dependencies.rocket]
 features = ["json"]
-git = "https://github.com/SergioBenitez/Rocket"
-rev = "8cae077"
+version = "0.5.0-rc.1"
