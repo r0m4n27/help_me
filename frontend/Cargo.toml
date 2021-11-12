@@ -8,7 +8,17 @@ version = "0.1.0"
 # New features are added in very often but are not released that much
 # so we have to use the repos instead of versions :(
 [dependencies]
+reqwest = {version = "0.11", features = ["json"]}
+serde = "1.0"
+wasm-bindgen-futures = "0.4.28"
 yew = {git = "https://github.com/yewstack/yew.git"}
 yew-router = {git = "https://github.com/yewstack/yew.git"}
 yewdux = {git = "https://github.com/intendednull/yewdux.git"}
 yewdux-functional = {git = "https://github.com/intendednull/yewdux.git"}
+
+[dependencies.web-sys]
+version = "0.3"
+# We need to enable all the web-sys features we want to use!
+features = [
+  "console",
+]

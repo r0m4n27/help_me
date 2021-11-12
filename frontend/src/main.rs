@@ -3,8 +3,10 @@ use yew_router::{Routable, Router};
 
 use pages::Index;
 
+mod api;
 mod components;
 mod pages;
+mod state;
 
 #[derive(Debug, Routable, PartialEq, Clone)]
 enum Route {
