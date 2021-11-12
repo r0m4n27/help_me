@@ -14,14 +14,31 @@ pub fn index() -> Html {
         AppState::Guest => {
             html! {<IndexGuest/>}
         }
+        AppState::GuestErr(err) => html! {
+            <IndexGuest err={err.clone().message}/>
+        },
         AppState::RequestedGuest(_) => {
             html! {}
         }
     }
 }
 
+#[derive(Properties, PartialEq)]
+struct IndexGuestProps {
+    err: Option<String>,
+}
+
 #[function_component(IndexGuest)]
-fn index_guest() -> Html {
+fn index_guest(props: &IndexGuestProps) -> Html {
+    let err_message = match &props.err {
+        Some(err) => html! {
+            <div class="notification is-danger">
+                <p>{err}</p>
+            </div>
+        },
+        None => html! {},
+    };
+
     html! {
         <section class="hero is-info is-fullheight">
             <div class="hero-head">
@@ -29,7 +46,10 @@ fn index_guest() -> Html {
             </div>
 
             <div class="hero-body container">
-            <CreateTaskForm/>
+                <div>
+                    <CreateTaskForm/>
+                    {err_message}
+                </div>
             </div>
         </section>
     }

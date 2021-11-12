@@ -1,16 +1,28 @@
-use reqwest::Client;
+use anyhow::Result;
+use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
+use serde_json::to_string;
 
-const API_URL: &str = "http://127.0.0.1:8000/api";
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum ApiResult<T> {
+    Ok(T),
+    Err(ApiError),
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ApiError {
+    pub message: String,
+}
 
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct Task {
-    id: String,
-    title: String,
-    body: String,
+    pub id: String,
+    pub title: String,
+    pub body: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct CreateTaskPayload {
     title: String,
     body: String,
@@ -25,14 +37,13 @@ impl CreateTaskPayload {
     }
 }
 
-pub async fn submit_request(payload: CreateTaskPayload) -> Task {
-    Client::new()
-        .post(format!("{}/tasks", API_URL))
-        .json(&payload)
+pub async fn submit_request(payload: CreateTaskPayload) -> Result<ApiResult<Task>> {
+    let task = Request::post("/api/tasks")
+        .body(to_string(&payload).unwrap())
         .send()
-        .await
-        .unwrap()
+        .await?
         .json()
-        .await
-        .unwrap()
+        .await?;
+
+    Ok(task)
 }

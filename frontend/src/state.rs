@@ -2,11 +2,12 @@ use serde::{Deserialize, Serialize};
 use yewdux::prelude::{Persistent, PersistentStore};
 use yewdux_functional::{use_store, StoreRef};
 
-use crate::api::Task;
+use crate::api::{ApiError, Task};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum AppState {
     Guest,
+    GuestErr(ApiError),
     RequestedGuest(Task),
 }
 

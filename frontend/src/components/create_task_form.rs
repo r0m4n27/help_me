@@ -1,49 +1,42 @@
 use wasm_bindgen_futures::spawn_local;
-use web_sys::console::log_1;
+use web_sys::{console::log_1, HtmlInputElement, HtmlTextAreaElement};
 use yew::prelude::*;
 use yewdux::prelude::Dispatcher;
 
 use crate::{
-    api::{submit_request, CreateTaskPayload},
+    api::{submit_request, ApiResult, CreateTaskPayload},
     state::{app_state_store, AppState},
 };
 
 #[function_component(CreateTaskForm)]
 pub fn create_task_form() -> Html {
-    let title = use_state(String::new);
-    let description = use_state(String::new);
+    let title_ref = NodeRef::default();
+    let description_ref = NodeRef::default();
     let store = app_state_store();
 
-    let on_title = {
-        let title = title.clone();
-
-        Callback::from(move |event: InputEvent| {
-            if let Some(data) = event.data() {
-                title.set((*title).clone() + &data);
-            }
-        })
-    };
-
-    let on_description = {
-        let description = description.clone();
-
-        Callback::from(move |event: InputEvent| {
-            if let Some(data) = event.data() {
-                description.set((*description).clone() + &data)
-            }
-        })
-    };
-
     let on_submit = {
+        let title_ref = title_ref.clone();
+        let description_ref = description_ref.clone();
         Callback::once(move |_| {
             spawn_local(async move {
-                let payload = CreateTaskPayload::new(title.to_string(), description.to_string());
-                let task = submit_request(payload).await;
-                log_1(&format!("{:?}", task).into());
+                let title = title_ref.cast::<HtmlInputElement>().unwrap().value();
+                let description = description_ref
+                    .cast::<HtmlTextAreaElement>()
+                    .unwrap()
+                    .value();
 
-                store
-                    .dispatch()
-                    .reduce(|app| *app = AppState::RequestedGuest(task));
+                let payload = CreateTaskPayload::new(title, description);
+                let task = submit_request(payload).await;
+
+                match task {
+                    Ok(task) => store.dispatch().reduce(|app| {
+                        *app = match task {
+                            ApiResult::Ok(task) => AppState::RequestedGuest(task),
+                            ApiResult::Err(err) => AppState::GuestErr(err),
+                        }
+                    }),
+                    Err(err) => log_1(&err.to_string().into()),
+                }
             })
         })
     };
@@ -56,7 +49,7 @@ pub fn create_task_form() -> Html {
 
             <div class="content">
                 <p class="title has-text-dark is-5 level-left">{"Title"}</p>
-                <input class="input" type="text" size="50" oninput={on_title}/>
+                <input class="input" type="text" size="50" ref={title_ref.clone()}/>
             </div>
 
             <div class="content">
@@ -64,10 +57,10 @@ pub fn create_task_form() -> Html {
                 <textarea class="textarea has-fixed-size"
                     type="textarea"
                     size="50"
-                    oninput={on_description}/>
+                    ref={description_ref.clone()}/>
             </div>
 
-            <button class="button is-primary" onclick={on_submit}>
+            <button class="button is-primary" onclick={on_submit.clone()}>
                 <strong>{"Submit"}</strong>
             </button>
         </div>
