@@ -14,6 +14,7 @@ use dotenv::dotenv;
 use futures::executor::block_on;
 use lazy_static::lazy_static;
 use models::QueriesError;
+use rocket::fs::FileServer;
 use rocket_cors::CorsOptions;
 use sqlx::{Pool, Sqlite};
 use std::{env, time::Duration};
@@ -81,6 +82,7 @@ async fn launch_rocket() -> Result<(), ApplicationError> {
         .attach(cors)
         .mount("/api", api_routes())
         .register("/api", api_catchers())
+        .mount("/", FileServer::from("./dist"))
         .launch()
         .await?;
 
