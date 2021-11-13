@@ -136,10 +136,15 @@ impl<'a> TaskQueries<'a> {
     pub async fn resolve_task(&self, id: &str) -> QueriesResult<()> {
         let task = self.get_task(id).await?;
 
-        if task.task_state() != TaskState::Pending {
-            return Err(QueriesError::IllegalState(
-                "Task state is not in Pending!".to_string(),
-            ));
+        let state = task.task_state();
+        if state != TaskState::Pending {
+            let err = if state == TaskState::Doing {
+                QueriesError::IllegalState("Tutor is processing the task already!".to_string())
+            } else {
+                QueriesError::IllegalState("Request is already completed!".to_string())
+            };
+
+            return Err(err);
         }
 
         query!("UPDATE task SET state = 'done' WHERE id = ?", id)
