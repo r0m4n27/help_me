@@ -52,7 +52,7 @@ pub async fn submit_request(payload: &CreateTaskPayload) -> Result<ApiResult<Tas
     Ok(task)
 }
 
-pub async fn resolve_request(task_id: &String) -> Result<ApiResult<NoResult>> {
+pub async fn resolve_request(task_id: &str) -> Result<ApiResult<NoResult>> {
     let response = Request::post(&format!("/api/tasks/{}/resolve", task_id))
         .send()
         .await?
@@ -62,7 +62,7 @@ pub async fn resolve_request(task_id: &String) -> Result<ApiResult<NoResult>> {
     Ok(response)
 }
 
-pub async fn get_task(task_id: &String) -> Result<ApiResult<Task>> {
+pub async fn get_task(task_id: &str) -> Result<ApiResult<Task>> {
     let response = Request::get(&format!("/api/tasks/{}", task_id))
         .send()
         .await?

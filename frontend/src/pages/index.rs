@@ -12,15 +12,11 @@ pub fn index() -> Html {
     let app_state = store.state().map(|s| s.as_ref()).unwrap_or_default();
 
     match app_state {
-        AppState::Guest => {
-            html! {<IndexGuest/>}
+        AppState::Guest(err) => {
+            html! {<IndexGuest err={err.clone().map(|e| e.message)}/>}
         }
-        AppState::GuestErr(err) => html! {<IndexGuest err={err.clone().message}/>},
-        AppState::RequestedGuest(task) => {
-            html! {<IndexGuestRequested task={task.clone()}/>}
-        }
-        AppState::RequestedGuestErr(task, err) => {
-            html! {<IndexGuestRequested task={task.clone()} err={err.clone().message}/>}
+        AppState::RequestedGuest(task, err) => {
+            html! {<IndexGuestRequested task={task.clone()} err={err.clone().map(|e| e.message)}/>}
         }
     }
 }

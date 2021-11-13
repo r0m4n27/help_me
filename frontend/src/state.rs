@@ -6,21 +6,19 @@ use crate::api::{ApiError, Task};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum AppState {
-    Guest,
-    GuestErr(ApiError),
-    RequestedGuest(Task),
-    RequestedGuestErr(Task, ApiError),
+    Guest(Option<ApiError>),
+    RequestedGuest(Task, Option<ApiError>),
 }
 
 impl Default for AppState {
     fn default() -> Self {
-        Self::Guest
+        Self::Guest(None)
     }
 }
 
 impl Default for &AppState {
     fn default() -> Self {
-        &AppState::Guest
+        &AppState::Guest(None)
     }
 }
 

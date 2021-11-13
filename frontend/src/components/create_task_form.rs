@@ -31,8 +31,8 @@ pub fn create_task_form() -> Html {
                 match task {
                     Ok(task) => store.dispatch().reduce(|app| {
                         *app = match task {
-                            ApiResult::Ok(task) => AppState::RequestedGuest(task),
-                            ApiResult::Err(err) => AppState::GuestErr(err),
+                            ApiResult::Ok(task) => AppState::RequestedGuest(task, None),
+                            ApiResult::Err(err) => AppState::Guest(Some(err)),
                         }
                     }),
                     Err(err) => log_1(&err.to_string().into()),

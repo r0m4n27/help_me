@@ -68,7 +68,9 @@ async fn resolve_request_and_update(
 ) -> Result<()> {
     let api_error = match resolve_request(&task.id).await? {
         ApiResult::Ok(_) => {
-            store.dispatch().reduce(|state| *state = AppState::Guest);
+            store
+                .dispatch()
+                .reduce(|state| *state = AppState::Guest(None));
             return Ok(());
         }
         ApiResult::Err(err) => err,
@@ -79,16 +81,16 @@ async fn resolve_request_and_update(
             if task.state == "done" {
                 store
                     .dispatch()
-                    .reduce(|state| *state = AppState::GuestErr(api_error))
+                    .reduce(|state| *state = AppState::Guest(Some(api_error)))
             } else {
                 store
                     .dispatch()
-                    .reduce(|state| *state = AppState::RequestedGuestErr(task, api_error))
+                    .reduce(|state| *state = AppState::RequestedGuest(task, Some(api_error)))
             }
         }
         ApiResult::Err(err) => store
             .dispatch()
-            .reduce(|state| *state = AppState::GuestErr(err)),
+            .reduce(|state| *state = AppState::Guest(Some(err))),
     };
 
     Ok(())
