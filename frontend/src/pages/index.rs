@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
 use crate::{
-    api::Task,
+    api::tasks::Task,
     components::{CreateTaskForm, GuestNavBar, RequestedTask},
     state::{app_state_store, AppState},
 };

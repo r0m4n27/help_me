@@ -6,7 +6,10 @@ use yewdux::prelude::{Dispatcher, PersistentStore};
 use yewdux_functional::StoreRef;
 
 use crate::{
-    api::{get_task, resolve_request, ApiResult, Task},
+    api::{
+        tasks::{get_task, resolve_request, Task},
+        ApiResult,
+    },
     state::{app_state_store, AppState},
 };
 

@@ -4,7 +4,7 @@ use yew::prelude::*;
 use yewdux::prelude::Dispatcher;
 
 use crate::{
-    api::{submit_request, ApiResult, CreateTaskPayload},
+    api::{tasks::submit_request, ApiResult},
     state::{app_state_store, AppState},
 };
 
@@ -25,8 +25,7 @@ pub fn create_task_form() -> Html {
                     .unwrap()
                     .value();
 
-                let payload = CreateTaskPayload::new(title, description);
-                let task = submit_request(&payload).await;
+                let task = submit_request(&title, &description).await;
 
                 match task {
                     Ok(task) => store.dispatch().reduce(|app| {

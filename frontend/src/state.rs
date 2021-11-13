@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use yewdux::prelude::{Persistent, PersistentStore};
 use yewdux_functional::{use_store, StoreRef};
 
-use crate::api::{ApiError, Task};
+use crate::api::{tasks::Task, ApiError};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum AppState {
