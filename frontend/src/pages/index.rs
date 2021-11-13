@@ -1,7 +1,8 @@
 use yew::prelude::*;
 
 use crate::{
-    components::{CreateTaskForm, GuestNavBar},
+    api::Task,
+    components::{CreateTaskForm, GuestNavBar, RequestedTask},
     state::{app_state_store, AppState},
 };
 
@@ -14,11 +15,12 @@ pub fn index() -> Html {
         AppState::Guest => {
             html! {<IndexGuest/>}
         }
-        AppState::GuestErr(err) => html! {
-            <IndexGuest err={err.clone().message}/>
-        },
-        AppState::RequestedGuest(_) => {
-            html! {}
+        AppState::GuestErr(err) => html! {<IndexGuest err={err.clone().message}/>},
+        AppState::RequestedGuest(task) => {
+            html! {<IndexGuestRequested task={task.clone()}/>}
+        }
+        AppState::RequestedGuestErr(task, err) => {
+            html! {<IndexGuestRequested task={task.clone()} err={err.clone().message}/>}
         }
     }
 }
@@ -45,9 +47,42 @@ fn index_guest(props: &IndexGuestProps) -> Html {
                 <GuestNavBar/>
             </div>
 
-            <div class="hero-body container">
-                <div>
+            <div class="hero-body section">
+                <div class="container">
                     <CreateTaskForm/>
+                    {err_message}
+                </div>
+            </div>
+        </section>
+    }
+}
+
+#[derive(PartialEq, Properties)]
+pub struct IndexGuestRequestedProps {
+    task: Task,
+    err: Option<String>,
+}
+
+#[function_component(IndexGuestRequested)]
+fn index_guest_requested(props: &IndexGuestRequestedProps) -> Html {
+    let err_message = match &props.err {
+        Some(err) => html! {
+            <div class="notification is-danger">
+                <p>{err}</p>
+            </div>
+        },
+        None => html! {},
+    };
+
+    html! {
+        <section class="hero is-info is-fullheight">
+            <div class="hero-head">
+                <GuestNavBar/>
+            </div>
+
+            <div class="hero-body section">
+                <div class="container">
+                    <RequestedTask task={props.task.clone()}/>
                     {err_message}
                 </div>
             </div>

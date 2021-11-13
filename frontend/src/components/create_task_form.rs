@@ -26,7 +26,7 @@ pub fn create_task_form() -> Html {
                     .value();
 
                 let payload = CreateTaskPayload::new(title, description);
-                let task = submit_request(payload).await;
+                let task = submit_request(&payload).await;
 
                 match task {
                     Ok(task) => store.dispatch().reduce(|app| {

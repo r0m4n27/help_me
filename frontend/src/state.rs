@@ -9,6 +9,7 @@ pub enum AppState {
     Guest,
     GuestErr(ApiError),
     RequestedGuest(Task),
+    RequestedGuestErr(Task, ApiError),
 }
 
 impl Default for AppState {
