@@ -2,7 +2,7 @@ use yew::prelude::*;
 
 use crate::{
     api::tasks::Task,
-    components::{CreateTaskForm, GuestNavBar, RequestedTask},
+    components::{GuestNavBar, RequestedTask, SubmitTask},
     state::{app_state_store, AppState},
 };
 
@@ -45,7 +45,7 @@ fn index_guest(props: &IndexGuestProps) -> Html {
 
             <div class="hero-body section">
                 <div class="container">
-                    <CreateTaskForm/>
+                    <SubmitTask/>
                     {err_message}
                 </div>
             </div>

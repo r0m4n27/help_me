@@ -3,13 +3,14 @@ use web_sys::{console::log_1, HtmlInputElement, HtmlTextAreaElement};
 use yew::prelude::*;
 use yewdux::prelude::Dispatcher;
 
+use super::edit_task::EditTask;
 use crate::{
     api::{tasks::submit_request, ApiResult},
     state::{app_state_store, AppState},
 };
 
-#[function_component(CreateTaskForm)]
-pub fn create_task_form() -> Html {
+#[function_component(SubmitTask)]
+pub fn submit_task() -> Html {
     let title_ref = NodeRef::default();
     let description_ref = NodeRef::default();
     let store = app_state_store();
@@ -41,27 +42,14 @@ pub fn create_task_form() -> Html {
     };
 
     html! {
-        <div class="box">
-            <div class="content has-text-centered">
-                <p class="title has-text-dark is-2">{"Submit Request"}</p>
-            </div>
-
-            <div class="content">
-                <p class="title has-text-dark is-5 level-left">{"Title"}</p>
-                <input class="input" type="text" size="50" ref={title_ref.clone()}/>
-            </div>
-
-            <div class="content">
-                <p class="title has-text-dark is-5 level-left">{"Description"}</p>
-                <textarea class="textarea has-fixed-size"
-                    type="textarea"
-                    size="50"
-                    ref={description_ref.clone()}/>
-            </div>
-
+        <EditTask header={"Submit Request".to_string()}
+            start_title={None::<String>}
+            start_description={None::<String>}
+            title_ref={title_ref}
+            description_ref={description_ref}>
             <button class="button is-primary" onclick={on_submit.clone()}>
                 <strong>{"Submit"}</strong>
             </button>
-        </div>
+        </EditTask>
     }
 }
