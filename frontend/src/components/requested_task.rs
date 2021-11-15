@@ -3,14 +3,14 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{console::log_1, HtmlInputElement, HtmlTextAreaElement};
 use yew::prelude::*;
 use yewdux::prelude::{Dispatcher, PersistentStore};
-use yewdux_functional::StoreRef;
+use yewdux_functional::{use_store, StoreRef};
 
 use crate::{
     api::{
         tasks::{get_task, resolve_request, update_task, Task},
         ApiResult,
     },
-    state::{app_state_store, AppState},
+    state::{AppState, AppStateStore},
 };
 
 use super::{edit_task::EditTask, view_task::ViewTask};
@@ -23,7 +23,7 @@ pub struct RequestedTaskProps {
 
 #[function_component(RequestedTask)]
 pub fn requested_task(props: &RequestedTaskProps) -> Html {
-    let store = app_state_store();
+    let store = use_store::<AppStateStore>();
     let editing = use_state(|| false);
 
     let on_revoke = {
@@ -57,7 +57,7 @@ pub fn requested_task(props: &RequestedTaskProps) -> Html {
         let props_task = props.task.clone();
 
         let editing = editing.clone();
-        let store = app_state_store();
+        let store = use_store::<AppStateStore>();
 
         Callback::once(move |_| {
             spawn_local(async move {

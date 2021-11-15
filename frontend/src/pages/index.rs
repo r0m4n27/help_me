@@ -1,23 +1,26 @@
 use yew::prelude::*;
+use yewdux_functional::use_store;
 
 use crate::{
     api::tasks::Task,
     components::{GuestNavBar, RequestedTask, SubmitTask},
-    state::{app_state_store, AppState},
+    state::{AppState, AppStateStore},
 };
 
 #[function_component(Index)]
 pub fn index() -> Html {
-    let store = app_state_store();
+    let store = use_store::<AppStateStore>();
     let app_state = store.state().map(|s| s.as_ref()).unwrap_or_default();
 
     match app_state {
         AppState::Guest(err) => {
-            html! {<IndexGuest err={err.clone().map(|e| e.message)}/>}
+            html! {<IndexGuest err={err.clone().map(|e|e.message)}/>}
         }
         AppState::RequestedGuest(task, err) => {
-            html! {<IndexGuestRequested task={task.clone()} err={err.clone().map(|e| e.message)}/>}
+            html! {<IndexGuestRequested task={task.clone()} err={err.clone().map(|e|e.message)}/>}
         }
+        AppState::Tutor(_) => html! {},
+        AppState::Admin(_) => html! {},
     }
 }
 

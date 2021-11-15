@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use yewdux::prelude::{Persistent, PersistentStore};
-use yewdux_functional::{use_store, StoreRef};
 
 use crate::api::{tasks::Task, ApiError};
 
@@ -8,6 +7,8 @@ use crate::api::{tasks::Task, ApiError};
 pub enum AppState {
     Guest(Option<ApiError>),
     RequestedGuest(Task, Option<ApiError>),
+    Tutor(String),
+    Admin(String),
 }
 
 impl Default for AppState {
@@ -24,6 +25,4 @@ impl Default for &AppState {
 
 impl Persistent for AppState {}
 
-pub fn app_state_store() -> StoreRef<PersistentStore<AppState>> {
-    use_store::<PersistentStore<AppState>>()
-}
+pub type AppStateStore = PersistentStore<AppState>;

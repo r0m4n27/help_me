@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::{Routable, Router};
 
-use pages::Index;
+use pages::{Index, Login};
 
 mod api;
 mod components;
@@ -18,21 +18,21 @@ enum Route {
 
 #[function_component(App)]
 fn app() -> Html {
-    html! {
-        <Router<Route> render={Router::render(switch)}/>
-    }
-}
-
-fn switch(route: &Route) -> Html {
-    match route {
+    let switch = |route: &Route| match route {
         Route::Index => {
             html! {
                 <Index/>
             }
         }
         Route::Login => {
-            html! {}
+            html! {
+                <Login/>
+            }
         }
+    };
+
+    html! {
+        <Router<Route> render={Router::render(switch)} />
     }
 }
 

@@ -2,18 +2,19 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{console::log_1, HtmlInputElement, HtmlTextAreaElement};
 use yew::prelude::*;
 use yewdux::prelude::Dispatcher;
+use yewdux_functional::use_store;
 
 use super::edit_task::EditTask;
 use crate::{
     api::{tasks::submit_request, ApiResult},
-    state::{app_state_store, AppState},
+    state::{AppState, AppStateStore},
 };
 
 #[function_component(SubmitTask)]
 pub fn submit_task() -> Html {
     let title_ref = NodeRef::default();
     let description_ref = NodeRef::default();
-    let store = app_state_store();
+    let store = use_store::<AppStateStore>();
 
     let on_submit = {
         let title_ref = title_ref.clone();
