@@ -2,25 +2,20 @@ use anyhow::Result;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{console::log_1, HtmlInputElement, HtmlTextAreaElement};
 use yew::prelude::*;
-use yewdux::prelude::{BasicStore, Dispatcher};
+use yewdux::prelude::Dispatcher;
 use yewdux_functional::{use_store, StoreRef};
 
 use crate::{
     api::{auth::login, user::get_user, ApiResult},
-    state::{AppState, AppStateStore},
+    state::{AppState, AppStateStore, LoginErrorState, LoginErrorStateStore},
 };
-
-#[derive(Clone)]
-pub struct LoginError(pub String);
-
-pub type LoginErrorStore = BasicStore<Option<LoginError>>;
 
 #[function_component(LoginBox)]
 pub fn login_box() -> Html {
     let user_name_ref = NodeRef::default();
     let password_ref = NodeRef::default();
     let app_store = use_store::<AppStateStore>();
-    let login_error_store = use_store::<LoginErrorStore>();
+    let login_error_store = use_store::<LoginErrorStateStore>();
 
     let on_submit = {
         let user_name_ref = user_name_ref.clone();
@@ -71,7 +66,7 @@ pub fn login_box() -> Html {
 
 async fn login_and_update(
     app_state_store: StoreRef<AppStateStore>,
-    login_error_store: StoreRef<LoginErrorStore>,
+    login_error_store: StoreRef<LoginErrorStateStore>,
     user_name: &str,
     password: &str,
 ) -> Result<()> {
@@ -80,7 +75,7 @@ async fn login_and_update(
         ApiResult::Err(err) => {
             login_error_store
                 .dispatch()
-                .reduce(|state| *state = Some(LoginError(err.message)));
+                .reduce(|state| *state = LoginErrorState(Some(err.message)));
             return Ok(());
         }
     };
@@ -90,7 +85,7 @@ async fn login_and_update(
         ApiResult::Err(err) => {
             login_error_store
                 .dispatch()
-                .reduce(|state| *state = Some(LoginError(err.message)));
+                .reduce(|state| *state = LoginErrorState(Some(err.message)));
             return Ok(());
         }
     };

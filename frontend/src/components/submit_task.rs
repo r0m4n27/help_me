@@ -1,13 +1,14 @@
+use anyhow::Result;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{console::log_1, HtmlInputElement, HtmlTextAreaElement};
 use yew::prelude::*;
 use yewdux::prelude::Dispatcher;
-use yewdux_functional::use_store;
+use yewdux_functional::{use_store, StoreRef};
 
 use super::edit_task::EditTask;
 use crate::{
     api::{tasks::submit_request, ApiResult},
-    state::{AppState, AppStateStore},
+    state::{AppState, AppStateStore, IndexErrorState, IndexErrorStateStore},
 };
 
 #[function_component(SubmitTask)]
@@ -15,6 +16,7 @@ pub fn submit_task() -> Html {
     let title_ref = NodeRef::default();
     let description_ref = NodeRef::default();
     let store = use_store::<AppStateStore>();
+    let err_store = use_store::<IndexErrorStateStore>();
 
     let on_submit = {
         let title_ref = title_ref.clone();
@@ -27,16 +29,10 @@ pub fn submit_task() -> Html {
                     .unwrap()
                     .value();
 
-                let task = submit_request(&title, &description).await;
-
-                match task {
-                    Ok(task) => store.dispatch().reduce(|app| {
-                        *app = match task {
-                            ApiResult::Ok(task) => AppState::RequestedGuest(task, None),
-                            ApiResult::Err(err) => AppState::Guest(Some(err)),
-                        }
-                    }),
-                    Err(err) => log_1(&err.to_string().into()),
+                if let Err(err) =
+                    submit_request_and_update(&title, &description, store, err_store).await
+                {
+                    log_1(&err.to_string().into())
                 }
             })
         })
@@ -53,4 +49,22 @@ pub fn submit_task() -> Html {
             </button>
         </EditTask>
     }
+}
+
+async fn submit_request_and_update(
+    title: &str,
+    description: &str,
+    app_store: StoreRef<AppStateStore>,
+    err_store: StoreRef<IndexErrorStateStore>,
+) -> Result<()> {
+    match submit_request(title, description).await? {
+        ApiResult::Ok(task) => app_store
+            .dispatch()
+            .reduce(|state| *state = AppState::RequestedGuest(task)),
+        ApiResult::Err(err) => err_store
+            .dispatch()
+            .reduce(|state| *state = IndexErrorState(Some(err.message))),
+    }
+
+    Ok(())
 }

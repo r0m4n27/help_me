@@ -2,7 +2,7 @@ use anyhow::Result;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{console::log_1, HtmlInputElement, HtmlTextAreaElement};
 use yew::prelude::*;
-use yewdux::prelude::{Dispatcher, PersistentStore};
+use yewdux::prelude::Dispatcher;
 use yewdux_functional::{use_store, StoreRef};
 
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
         tasks::{get_task, resolve_request, update_task, Task},
         ApiResult,
     },
-    state::{AppState, AppStateStore},
+    state::{AppState, AppStateStore, IndexErrorState, IndexErrorStateStore},
 };
 
 use super::{edit_task::EditTask, view_task::ViewTask};
@@ -23,14 +23,16 @@ pub struct RequestedTaskProps {
 
 #[function_component(RequestedTask)]
 pub fn requested_task(props: &RequestedTaskProps) -> Html {
-    let store = use_store::<AppStateStore>();
     let editing = use_state(|| false);
 
     let on_revoke = {
         let props = props.clone();
+        let store = use_store::<AppStateStore>();
+        let err_store = use_store::<IndexErrorStateStore>();
+
         Callback::once(move |_| {
             spawn_local(async move {
-                if let Err(err) = resolve_request_and_update(&store, props.task).await {
+                if let Err(err) = resolve_request_and_update(&store, &err_store, props.task).await {
                     log_1(&err.to_string().into())
                 }
             })
@@ -58,6 +60,7 @@ pub fn requested_task(props: &RequestedTaskProps) -> Html {
 
         let editing = editing.clone();
         let store = use_store::<AppStateStore>();
+        let err_store = use_store::<IndexErrorStateStore>();
 
         Callback::once(move |_| {
             spawn_local(async move {
@@ -70,21 +73,21 @@ pub fn requested_task(props: &RequestedTaskProps) -> Html {
                 let result = update_task(&props_task.id, &title, &description).await;
 
                 match result {
-                    Ok(result) => store.dispatch().reduce(move |app| {
-                        *app = match result {
-                            ApiResult::Ok(_) => {
-                                let task = Task {
-                                    title,
-                                    body: description,
-                                    ..props_task
-                                };
-                                editing.set(false);
+                    Ok(result) => match result {
+                        ApiResult::Ok(_) => store.dispatch().reduce(move |state| {
+                            let task = Task {
+                                title,
+                                body: description,
+                                ..props_task
+                            };
+                            editing.set(false);
 
-                                AppState::RequestedGuest(task, None)
-                            }
-                            ApiResult::Err(err) => AppState::RequestedGuest(props_task, Some(err)),
-                        }
-                    }),
+                            *state = AppState::RequestedGuest(task)
+                        }),
+                        ApiResult::Err(err) => err_store
+                            .dispatch()
+                            .reduce(|state| *state = IndexErrorState(Some(err.message))),
+                    },
                     Err(err) => log_1(&err.to_string().into()),
                 }
             })
@@ -129,14 +132,13 @@ pub fn requested_task(props: &RequestedTaskProps) -> Html {
 }
 
 async fn resolve_request_and_update(
-    store: &StoreRef<PersistentStore<AppState>>,
+    store: &StoreRef<AppStateStore>,
+    err_store: &StoreRef<IndexErrorStateStore>,
     task: Task,
 ) -> Result<()> {
     let api_error = match resolve_request(&task.id).await? {
         ApiResult::Ok(_) => {
-            store
-                .dispatch()
-                .reduce(|state| *state = AppState::Guest(None));
+            store.dispatch().reduce(|state| *state = AppState::Guest);
             return Ok(());
         }
         ApiResult::Err(err) => err,
@@ -145,18 +147,21 @@ async fn resolve_request_and_update(
     match get_task(&task.id).await? {
         ApiResult::Ok(task) => {
             if task.state == "done" {
-                store
+                err_store
                     .dispatch()
-                    .reduce(|state| *state = AppState::Guest(Some(api_error)))
+                    .reduce(|state| *state = IndexErrorState(Some(api_error.message)))
             } else {
                 store
                     .dispatch()
-                    .reduce(|state| *state = AppState::RequestedGuest(task, Some(api_error)))
+                    .reduce(|state| *state = AppState::RequestedGuest(task));
+                err_store
+                    .dispatch()
+                    .reduce(|state| *state = IndexErrorState(Some(api_error.message)))
             }
         }
-        ApiResult::Err(err) => store
+        ApiResult::Err(err) => err_store
             .dispatch()
-            .reduce(|state| *state = AppState::Guest(Some(err))),
+            .reduce(|state| *state = IndexErrorState(Some(err.message))),
     };
 
     Ok(())

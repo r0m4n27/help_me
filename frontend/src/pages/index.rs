@@ -1,23 +1,27 @@
+use std::rc::Rc;
+
 use yew::prelude::*;
 use yewdux_functional::use_store;
 
 use crate::{
     api::tasks::Task,
     components::{GuestNavBar, RequestedTask, SubmitTask},
-    state::{AppState, AppStateStore},
+    state::{AppState, AppStateStore, GetState, IndexErrorState, IndexErrorStateStore},
 };
 
 #[function_component(Index)]
 pub fn index() -> Html {
     let store = use_store::<AppStateStore>();
-    let app_state = store.state().map(|s| s.as_ref()).unwrap_or_default();
+    let app_state = store.get_state();
+    let err_store = use_store::<IndexErrorStateStore>();
+    let err_state = err_store.get_state();
 
-    match app_state {
-        AppState::Guest(err) => {
-            html! {<IndexGuest err={err.clone().map(|e|e.message)}/>}
+    match app_state.as_ref() {
+        AppState::Guest => {
+            html! {<IndexGuest err={err_state}/>}
         }
-        AppState::RequestedGuest(task, err) => {
-            html! {<IndexGuestRequested task={task.clone()} err={err.clone().map(|e|e.message)}/>}
+        AppState::RequestedGuest(task) => {
+            html! {<IndexGuestRequested task={task.clone()} err={err_state}/>}
         }
         AppState::Tutor(_) => html! {},
         AppState::Admin(_) => html! {},
@@ -26,12 +30,12 @@ pub fn index() -> Html {
 
 #[derive(Properties, PartialEq)]
 struct IndexGuestProps {
-    err: Option<String>,
+    err: Rc<IndexErrorState>,
 }
 
 #[function_component(IndexGuest)]
 fn index_guest(props: &IndexGuestProps) -> Html {
-    let err_message = match &props.err {
+    let err_message = match &props.err.as_ref().0 {
         Some(err) => html! {
             <div class="notification is-danger">
                 <p>{err}</p>
@@ -59,12 +63,12 @@ fn index_guest(props: &IndexGuestProps) -> Html {
 #[derive(PartialEq, Properties)]
 pub struct IndexGuestRequestedProps {
     task: Task,
-    err: Option<String>,
+    err: Rc<IndexErrorState>,
 }
 
 #[function_component(IndexGuestRequested)]
 fn index_guest_requested(props: &IndexGuestRequestedProps) -> Html {
-    let err_message = match &props.err {
+    let err_message = match &props.err.as_ref().0 {
         Some(err) => html! {
             <div class="notification is-danger">
                 <p>{err}</p>
