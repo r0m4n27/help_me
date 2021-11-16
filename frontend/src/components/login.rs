@@ -75,7 +75,7 @@ async fn login_and_update(
     user_name: &str,
     password: &str,
 ) -> Result<()> {
-    let token = match login(&user_name, &password).await? {
+    let token = match login(user_name, password).await? {
         ApiResult::Ok(token) => token,
         ApiResult::Err(err) => {
             login_error_store

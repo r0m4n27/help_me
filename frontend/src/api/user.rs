@@ -11,7 +11,7 @@ pub struct User {
 }
 
 pub async fn get_user(token: &str) -> Result<ApiResult<User>> {
-    let task = Request::get("/api/auth/login")
+    let task = Request::get("/api/user")
         .bearer(token)
         .send()
         .await?

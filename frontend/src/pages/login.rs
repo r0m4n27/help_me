@@ -1,4 +1,5 @@
 use yew::prelude::*;
+use yew_router::replace_route;
 use yewdux_functional::use_store;
 
 use crate::{
@@ -7,6 +8,7 @@ use crate::{
         GuestNavBar,
     },
     state::{AppState, AppStateStore},
+    Route,
 };
 
 #[function_component(Login)]
@@ -24,8 +26,10 @@ pub fn login() -> Html {
 
             html! {<LoginGuest err={login_err.map(|e|e.0)}/>}
         }
-        AppState::Tutor(_) => html! {},
-        AppState::Admin(_) => html! {},
+        AppState::Tutor(_) | AppState::Admin(_) => {
+            replace_route(Route::Index);
+            html! {}
+        }
     }
 }
 
