@@ -48,11 +48,7 @@ where
     T::Model: Default,
 {
     fn get_state(self) -> Rc<T::Model> {
-        self.state()
-            .map(|s| StateWrapper::from(s))
-            .unwrap_or_default()
-            .0
-            .clone()
+        self.state().map(StateWrapper::from).unwrap_or_default().0
     }
 }
 
