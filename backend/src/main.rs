@@ -14,10 +14,10 @@ use dotenv::dotenv;
 use futures::executor::block_on;
 use lazy_static::lazy_static;
 use models::QueriesError;
-use rocket::fs::FileServer;
+use rocket::fs::{FileServer, NamedFile};
 use rocket_cors::CorsOptions;
 use sqlx::{Pool, Sqlite};
-use std::{env, time::Duration};
+use std::{env, path::Path, time::Duration};
 use tokio::select;
 
 use crate::{
@@ -82,11 +82,19 @@ async fn launch_rocket() -> Result<(), ApplicationError> {
         .attach(cors)
         .mount("/api", api_routes())
         .register("/api", api_catchers())
+        .register("/", catchers![catch_spa])
         .mount("/", FileServer::from("./dist"))
         .launch()
         .await?;
 
     Ok(())
+}
+
+#[catch(404)]
+async fn catch_spa() -> NamedFile {
+    NamedFile::open(Path::new("./dist/index.html"))
+        .await
+        .unwrap()
 }
 
 // This job will clean up expired tokens
