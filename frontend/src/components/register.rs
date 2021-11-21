@@ -2,18 +2,21 @@ use anyhow::Result;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{console::log_1, HtmlInputElement, HtmlTextAreaElement};
 use yew::prelude::*;
-use yew_router::components::Link;
 use yewdux::prelude::Dispatcher;
 use yewdux_functional::{use_store, StoreRef};
 
 use crate::{
-    api::{auth::login, user::get_user, ApiResult},
+    api::{
+        auth::{register, RegisterPayload},
+        user::get_user,
+        ApiResult,
+    },
     state::{AppState, AppStateStore, LoginErrorState, LoginErrorStateStore},
-    Route,
 };
 
-#[function_component(LoginBox)]
-pub fn login_box() -> Html {
+#[function_component(RegisterBox)]
+pub fn register_box() -> Html {
+    let invite_code_ref = NodeRef::default();
     let user_name_ref = NodeRef::default();
     let password_ref = NodeRef::default();
     let app_store = use_store::<AppStateStore>();
@@ -22,13 +25,17 @@ pub fn login_box() -> Html {
     let on_submit = {
         let user_name_ref = user_name_ref.clone();
         let password_ref = password_ref.clone();
+        let invite_code_ref = invite_code_ref.clone();
         Callback::once(move |_| {
             spawn_local(async move {
                 let user_name = user_name_ref.cast::<HtmlInputElement>().unwrap().value();
                 let password = password_ref.cast::<HtmlTextAreaElement>().unwrap().value();
-                let login_res =
-                    login_and_update(app_store, login_error_store, &user_name, &password).await;
-                if let Err(err) = login_res {
+                let invite_code = invite_code_ref.cast::<HtmlInputElement>().unwrap().value();
+                let payload = RegisterPayload::new(&user_name, &password, &invite_code);
+
+                let register_res =
+                    register_and_update(app_store, login_error_store, &payload).await;
+                if let Err(err) = register_res {
                     log_1(&err.to_string().into());
                 }
             })
@@ -38,7 +45,7 @@ pub fn login_box() -> Html {
     html! {
         <form class="box">
             <div class="content has-text-centered">
-                <p class="title has-text-dark is-2">{"Login"}</p>
+                <p class="title has-text-dark is-2">{"Register"}</p>
             </div>
 
             <div class="content">
@@ -59,29 +66,27 @@ pub fn login_box() -> Html {
                 ref={password_ref.clone()}/>
             </div>
 
-            <div class="level content">
-                <div class="level-left">
-                    <a class="button is-primary level-item" onclick={on_submit.clone()}>
-                        <strong>{"Login"}</strong>
-                    </a>
-                    <Link<Route>
-                        classes={classes!("has-text-link", "level-item")}
-                        route={Route::Register}>
-                        {"No account? Register with an invite code"}
-                    </Link<Route>>
-                </div>
+            <div class="content">
+                <p class="title has-text-dark is-5 level-left">{"Invite Code"}</p>
+                <input class="input"
+                type="text"
+                size="50"
+                ref={invite_code_ref.clone()}/>
             </div>
+
+            <a class="button is-primary" onclick={on_submit.clone()}>
+                <strong>{"Register"}</strong>
+            </a>
         </form>
     }
 }
 
-async fn login_and_update(
+async fn register_and_update(
     app_state_store: StoreRef<AppStateStore>,
     login_error_store: StoreRef<LoginErrorStateStore>,
-    user_name: &str,
-    password: &str,
+    payload: &RegisterPayload<'_>,
 ) -> Result<()> {
-    let token = match login(user_name, password).await? {
+    let token = match register(payload).await? {
         ApiResult::Ok(token) => token,
         ApiResult::Err(err) => {
             login_error_store
