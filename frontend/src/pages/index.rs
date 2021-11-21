@@ -5,9 +5,11 @@ use yewdux_functional::use_store;
 
 use crate::{
     api::tasks::Task,
-    components::{GuestNavBar, RequestedTask, SubmitTask},
+    components::{NavBar, RequestedTask, SubmitTask},
     state::{AppState, AppStateStore, GetState, IndexErrorState, IndexErrorStateStore},
 };
+
+use super::ErrorMessage;
 
 #[function_component(Index)]
 pub fn index() -> Html {
@@ -24,7 +26,9 @@ pub fn index() -> Html {
             html! {<IndexGuestRequested task={task.clone()} err={err_state}/>}
         }
         AppState::Tutor(_) => html! {},
-        AppState::Admin(_) => html! {},
+        AppState::Admin(_) => html! {
+            <IndexAdmin err={err_state}/>
+        },
     }
 }
 
@@ -35,25 +39,16 @@ struct IndexGuestProps {
 
 #[function_component(IndexGuest)]
 fn index_guest(props: &IndexGuestProps) -> Html {
-    let err_message = match &props.err.as_ref().0 {
-        Some(err) => html! {
-            <div class="notification is-danger">
-                <p>{err}</p>
-            </div>
-        },
-        None => html! {},
-    };
-
     html! {
         <section class="hero is-info is-fullheight">
             <div class="hero-head">
-                <GuestNavBar/>
+                <NavBar logged_in={false}/>
             </div>
 
             <div class="hero-body section">
                 <div class="container">
                     <SubmitTask/>
-                    {err_message}
+                    <ErrorMessage err={props.err.0.clone()}/>
                 </div>
             </div>
         </section>
@@ -68,27 +63,41 @@ pub struct IndexGuestRequestedProps {
 
 #[function_component(IndexGuestRequested)]
 fn index_guest_requested(props: &IndexGuestRequestedProps) -> Html {
-    let err_message = match &props.err.as_ref().0 {
-        Some(err) => html! {
-            <div class="notification is-danger">
-                <p>{err}</p>
-            </div>
-        },
-        None => html! {},
-    };
-
     html! {
         <section class="hero is-info is-fullheight">
             <div class="hero-head">
-                <GuestNavBar/>
+                <NavBar logged_in={false}/>
             </div>
 
             <div class="hero-body section">
                 <div class="container">
                     <RequestedTask task={props.task.clone()}/>
-                    {err_message}
+                    <ErrorMessage err={props.err.0.clone()}/>
                 </div>
             </div>
         </section>
+    }
+}
+
+#[derive(Properties, PartialEq)]
+struct IndexAdminProps {
+    err: Rc<IndexErrorState>,
+}
+
+#[function_component(IndexAdmin)]
+fn index_admin(props: &IndexAdminProps) -> Html {
+    html! {
+        <section class="hero is-info is-fullheight">
+        <div class="hero-head">
+            <NavBar logged_in={true}/>
+        </div>
+
+        <div class="hero-body section">
+            <div class="container">
+                <SubmitTask/>
+                <ErrorMessage err={props.err.0.clone()}/>
+            </div>
+        </div>
+    </section>
     }
 }

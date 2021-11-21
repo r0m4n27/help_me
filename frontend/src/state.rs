@@ -73,3 +73,14 @@ impl Default for LoginErrorState {
 }
 
 pub type LoginErrorStateStore = BasicStore<LoginErrorState>;
+
+#[derive(Clone, PartialEq)]
+pub struct RegisterErrorState(pub Option<String>);
+
+impl Default for RegisterErrorState {
+    fn default() -> Self {
+        Self(Default::default())
+    }
+}
+
+pub type RegisterErrorStateStore = BasicStore<RegisterErrorState>;

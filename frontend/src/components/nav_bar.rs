@@ -3,8 +3,13 @@ use yew_router::components::Link;
 
 use crate::Route;
 
-#[function_component(GuestNavBar)]
-pub fn guest_nav_bar() -> Html {
+#[derive(PartialEq, Properties)]
+pub struct NavBarProps {
+    pub logged_in: bool,
+}
+
+#[function_component(NavBar)]
+pub fn nav_bar(props: &NavBarProps) -> Html {
     let menu_expanded = use_state(|| false);
 
     let on_menu = {
@@ -22,7 +27,7 @@ pub fn guest_nav_bar() -> Html {
         <nav class="navbar" role="navigation" aria-label="main navigation">
             <NavBarBrand expanded_class={expanded_class} on_menu={on_menu}/>
 
-            <NavBarItems expanded_class={expanded_class}/>
+            <NavBarItems expanded_class={expanded_class} logged_in={props.logged_in}/>
         </nav>
     }
 }
@@ -66,10 +71,25 @@ fn nav_bar_brand(props: &NavBarBrandProps) -> Html {
 #[derive(PartialEq, Properties)]
 struct NavBarItemsProps {
     expanded_class: Option<String>,
+    logged_in: bool,
 }
 
 #[function_component(NavBarItems)]
 fn nav_bar_items(props: &NavBarItemsProps) -> Html {
+    let button = if props.logged_in {
+        html! {
+            <button class="button is-danger">
+                {"Log Out"}
+            </button>
+        }
+    } else {
+        html! {
+            <Link<Route> route={Route::Login} classes={classes!("button", "is-primary")}>
+                <strong>{"Log In"}</strong>
+            </Link<Route>>
+        }
+    };
+
     html! {
         <div id="navbarBasic" class={classes!("navbar-menu", &props.expanded_class)}>
             <div class="navbar-end">
@@ -80,9 +100,7 @@ fn nav_bar_items(props: &NavBarItemsProps) -> Html {
                 </div>
 
                 <div class="navbar-item">
-                    <Link<Route> route={Route::Login} classes={classes!("button", "is-primary")}>
-                        <strong>{"Log In"}</strong>
-                    </Link<Route>>
+                    {button}
                 </div>
             </div>
     </div>

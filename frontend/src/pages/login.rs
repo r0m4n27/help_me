@@ -5,10 +5,12 @@ use yew_router::replace_route;
 use yewdux_functional::use_store;
 
 use crate::{
-    components::{login::LoginBox, GuestNavBar},
+    components::{LoginBox, NavBar},
     state::{AppState, AppStateStore, GetState, LoginErrorState, LoginErrorStateStore},
     Route,
 };
+
+use super::ErrorMessage;
 
 #[function_component(Login)]
 pub fn login() -> Html {
@@ -35,25 +37,16 @@ struct LoginGuestProps {
 
 #[function_component(LoginGuest)]
 fn login_guest(props: &LoginGuestProps) -> Html {
-    let err_message = match &props.err.as_ref().0 {
-        Some(err) => html! {
-            <div class="notification is-danger">
-                <p>{err}</p>
-            </div>
-        },
-        None => html! {},
-    };
-
     html! {
         <section class="hero is-info is-fullheight">
             <div class="hero-head">
-                <GuestNavBar/>
+                <NavBar logged_in={false}/>
             </div>
 
             <div class="hero-body section">
                 <div class="container">
                     <LoginBox/>
-                    {err_message}
+                    <ErrorMessage err={props.err.0.clone()}/>
                 </div>
             </div>
         </section>
