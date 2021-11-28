@@ -106,7 +106,6 @@ impl<'r> FromRequest<'r> for AdminGuard<'r> {
 
 fn extract_bearer_token(text: &str) -> Option<&str> {
     let parts = text.split_whitespace().collect::<Vec<_>>();
-    println!("{:?}", parts);
 
     if parts.len() == 2 {
         if parts[0].to_lowercase() == "bearer" {
