@@ -89,7 +89,7 @@ fn nav_bar_items(props: &NavBarItemsProps) -> Html {
                 </Link<Route>>
             }
         }
-        AppState::Tutor(token) | AppState::Admin(token) => {
+        AppState::Tutor(token) | AppState::Admin(token, _) => {
             html! {
                 <LogOutButton token={token.clone()}/>
             }

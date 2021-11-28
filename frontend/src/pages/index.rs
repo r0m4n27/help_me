@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
 use yew::prelude::*;
+
 use yewdux_functional::use_store;
 
 use crate::{
-    api::tasks::Task,
-    components::{NavBar, RequestedTask, SubmitTask},
+    api::{admin::Invite, tasks::Task},
+    components::{Invites, NavBar, RequestedTask, SubmitTask},
     state::{AppState, AppStateStore, GetState, IndexErrorState, IndexErrorStateStore},
 };
 
@@ -26,8 +27,8 @@ pub fn index() -> Html {
             html! {<IndexGuestRequested task={task.clone()} err={err_state}/>}
         }
         AppState::Tutor(_) => html! {},
-        AppState::Admin(_) => html! {
-            <IndexAdmin err={err_state}/>
+        AppState::Admin(token, invites) => html! {
+            <IndexAdmin err={err_state} token={token.clone()} invites={invites.clone()}/>
         },
     }
 }
@@ -81,6 +82,8 @@ fn index_guest_requested(props: &IndexGuestRequestedProps) -> Html {
 
 #[derive(Properties, PartialEq)]
 struct IndexAdminProps {
+    token: String,
+    invites: Vec<Invite>,
     err: Rc<IndexErrorState>,
 }
 
@@ -94,7 +97,9 @@ fn index_admin(props: &IndexAdminProps) -> Html {
 
         <div class="hero-body section">
             <div class="container">
-                <SubmitTask/>
+                <div class="box">
+                    <Invites token={props.token.clone()} invites={props.invites.clone()}/>
+                </div>
                 <ErrorMessage err={props.err.0.clone()}/>
             </div>
         </div>

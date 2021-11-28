@@ -1,6 +1,7 @@
 use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 
+pub mod admin;
 pub mod auth;
 pub mod tasks;
 pub mod user;

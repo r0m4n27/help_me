@@ -23,7 +23,7 @@ pub fn register() -> Html {
         AppState::Guest | AppState::RequestedGuest(_) => {
             html! {<RegisterGuest err={err_state}/>}
         }
-        AppState::Tutor(_) | AppState::Admin(_) => {
+        AppState::Tutor(_) | AppState::Admin(_, _) => {
             replace_route(Route::Index);
             html! {}
         }
