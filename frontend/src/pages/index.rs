@@ -5,8 +5,8 @@ use yew::prelude::*;
 use yewdux_functional::use_store;
 
 use crate::{
-    api::{admin::Invite, tasks::Task},
-    components::{Invites, NavBar, RequestedTask, SubmitTask},
+    api::{admin::Invite, tasks::Task, user::User},
+    components::{Invites, NavBar, RequestedTask, SubmitTask, Users},
     state::{AppState, AppStateStore, GetState, IndexErrorState, IndexErrorStateStore},
 };
 
@@ -27,8 +27,11 @@ pub fn index() -> Html {
             html! {<IndexGuestRequested task={task.clone()} err={err_state}/>}
         }
         AppState::Tutor(_) => html! {},
-        AppState::Admin(token, invites) => html! {
-            <IndexAdmin err={err_state} token={token.clone()} invites={invites.clone()}/>
+        AppState::Admin(token, invites, users) => html! {
+            <IndexAdmin err={err_state}
+                token={token.clone()}
+                invites={invites.clone()}
+                users={users.clone()}/>
         },
     }
 }
@@ -84,6 +87,7 @@ fn index_guest_requested(props: &IndexGuestRequestedProps) -> Html {
 struct IndexAdminProps {
     token: String,
     invites: Vec<Invite>,
+    users: Vec<User>,
     err: Rc<IndexErrorState>,
 }
 
@@ -98,7 +102,14 @@ fn index_admin(props: &IndexAdminProps) -> Html {
         <div class="hero-body section">
             <div class="container">
                 <div class="box">
-                    <Invites token={props.token.clone()} invites={props.invites.clone()}/>
+                    <div class="columns">
+                        <div class="column">
+                            <Invites token={props.token.clone()} invites={props.invites.clone()}/>
+                        </div>
+                        <div class="column">
+                            <Users token={props.token.clone()} users={props.users.clone()}/>
+                        </div>
+                    </div>
                 </div>
                 <ErrorMessage err={props.err.0.clone()}/>
             </div>

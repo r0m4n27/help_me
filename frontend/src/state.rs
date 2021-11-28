@@ -4,14 +4,14 @@ use serde::{Deserialize, Serialize};
 use yewdux::prelude::{BasicStore, Persistent, PersistentStore, Store};
 use yewdux_functional::StoreRef;
 
-use crate::api::{admin::Invite, tasks::Task};
+use crate::api::{admin::Invite, tasks::Task, user::User};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum AppState {
     Guest,
     RequestedGuest(Task),
     Tutor(String),
-    Admin(String, Vec<Invite>),
+    Admin(String, Vec<Invite>, Vec<User>),
 }
 
 impl Default for AppState {

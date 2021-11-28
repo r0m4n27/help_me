@@ -105,7 +105,7 @@ async fn login_and_update(
         let new_state = if &user.user_type == "tutor" {
             AppState::Tutor(token.token)
         } else {
-            AppState::Admin(token.token, Vec::new())
+            AppState::Admin(token.token, Vec::new(), Vec::new())
         };
 
         *state = new_state;
