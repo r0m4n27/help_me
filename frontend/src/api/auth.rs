@@ -1,9 +1,9 @@
 use anyhow::Result;
 use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, to_string};
+use serde_json::{json, to_string, Value};
 
-use super::ApiResult;
+use super::{ApiResult, BearerRequest};
 
 #[derive(Serialize, Deserialize)]
 pub struct Token {
@@ -56,4 +56,15 @@ pub async fn register(payload: &RegisterPayload<'_>) -> Result<ApiResult<Token>>
         .await?;
 
     Ok(token)
+}
+
+pub async fn log_out(token: &str) -> Result<ApiResult<Value>> {
+    let response = Request::post("/api/auth/logout")
+        .bearer(token)
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response)
 }

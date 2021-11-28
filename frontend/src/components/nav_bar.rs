@@ -1,15 +1,19 @@
+use anyhow::Result;
+use wasm_bindgen_futures::spawn_local;
+use web_sys::console::log_1;
 use yew::prelude::*;
 use yew_router::components::Link;
+use yewdux::prelude::Dispatcher;
+use yewdux_functional::{use_store, StoreRef};
 
-use crate::Route;
-
-#[derive(PartialEq, Properties)]
-pub struct NavBarProps {
-    pub logged_in: bool,
-}
+use crate::{
+    api::{auth::log_out, ApiResult},
+    state::{AppState, AppStateStore, GetState, IndexErrorState, IndexErrorStateStore},
+    Route,
+};
 
 #[function_component(NavBar)]
-pub fn nav_bar(props: &NavBarProps) -> Html {
+pub fn nav_bar() -> Html {
     let menu_expanded = use_state(|| false);
 
     let on_menu = {
@@ -27,7 +31,7 @@ pub fn nav_bar(props: &NavBarProps) -> Html {
         <nav class="navbar" role="navigation" aria-label="main navigation">
             <NavBarBrand expanded_class={expanded_class} on_menu={on_menu}/>
 
-            <NavBarItems expanded_class={expanded_class} logged_in={props.logged_in}/>
+            <NavBarItems expanded_class={expanded_class}/>
         </nav>
     }
 }
@@ -71,22 +75,24 @@ fn nav_bar_brand(props: &NavBarBrandProps) -> Html {
 #[derive(PartialEq, Properties)]
 struct NavBarItemsProps {
     expanded_class: Option<String>,
-    logged_in: bool,
 }
 
 #[function_component(NavBarItems)]
 fn nav_bar_items(props: &NavBarItemsProps) -> Html {
-    let button = if props.logged_in {
-        html! {
-            <button class="button is-danger">
-                {"Log Out"}
-            </button>
+    let app_store = use_store::<AppStateStore>();
+    let state = app_store.get_state();
+    let button = match state.as_ref() {
+        AppState::Guest | AppState::RequestedGuest(_) => {
+            html! {
+                <Link<Route> route={Route::Login} classes={classes!("button", "is-primary")}>
+                    <strong>{"Log In"}</strong>
+                </Link<Route>>
+            }
         }
-    } else {
-        html! {
-            <Link<Route> route={Route::Login} classes={classes!("button", "is-primary")}>
-                <strong>{"Log In"}</strong>
-            </Link<Route>>
+        AppState::Tutor(token) | AppState::Admin(token) => {
+            html! {
+                <LogOutButton token={token.clone()}/>
+            }
         }
     };
 
@@ -105,4 +111,50 @@ fn nav_bar_items(props: &NavBarItemsProps) -> Html {
             </div>
     </div>
     }
+}
+
+#[derive(PartialEq, Properties)]
+struct LogOutButtonProps {
+    token: String,
+}
+
+#[function_component(LogOutButton)]
+fn log_out_button(props: &LogOutButtonProps) -> Html {
+    let app_store = use_store::<AppStateStore>();
+    let err_store = use_store::<IndexErrorStateStore>();
+
+    let on_logout = {
+        let token = props.token.clone();
+
+        Callback::once(|_| {
+            spawn_local(async {
+                if let Err(err) = log_out_and_update(token, err_store, app_store).await {
+                    log_1(&err.to_string().into())
+                }
+            })
+        })
+    };
+
+    html! {
+        <button class="button is-danger" onclick={on_logout}>
+            {"Log Out"}
+        </button>
+    }
+}
+
+async fn log_out_and_update(
+    token: String,
+    err_store: StoreRef<IndexErrorStateStore>,
+    app_store: StoreRef<AppStateStore>,
+) -> Result<()> {
+    match log_out(&token).await? {
+        ApiResult::Err(err) => err_store
+            .dispatch()
+            .reduce(|state| *state = IndexErrorState(Some(err.message))),
+        ApiResult::Ok(_) => app_store
+            .dispatch()
+            .reduce(|state| *state = AppState::Guest),
+    }
+
+    Ok(())
 }

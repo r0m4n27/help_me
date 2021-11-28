@@ -42,7 +42,7 @@ fn index_guest(props: &IndexGuestProps) -> Html {
     html! {
         <section class="hero is-info is-fullheight">
             <div class="hero-head">
-                <NavBar logged_in={false}/>
+                <NavBar/>
             </div>
 
             <div class="hero-body section">
@@ -66,7 +66,7 @@ fn index_guest_requested(props: &IndexGuestRequestedProps) -> Html {
     html! {
         <section class="hero is-info is-fullheight">
             <div class="hero-head">
-                <NavBar logged_in={false}/>
+                <NavBar/>
             </div>
 
             <div class="hero-body section">
@@ -89,7 +89,7 @@ fn index_admin(props: &IndexAdminProps) -> Html {
     html! {
         <section class="hero is-info is-fullheight">
         <div class="hero-head">
-            <NavBar logged_in={true}/>
+            <NavBar/>
         </div>
 
         <div class="hero-body section">

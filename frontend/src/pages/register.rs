@@ -40,7 +40,7 @@ fn register_guest(props: &RegisterGuestProps) -> Html {
     html! {
         <section class="hero is-info is-fullheight">
             <div class="hero-head">
-                <NavBar logged_in={false}/>
+                <NavBar/>
             </div>
 
             <div class="hero-body section">
