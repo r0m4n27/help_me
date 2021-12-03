@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use anyhow::Result;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{console::log_1, HtmlInputElement, HtmlTextAreaElement};
@@ -105,7 +103,7 @@ async fn login_and_update(
 
     app_state_store.dispatch().reduce(move |state| {
         let new_state = if &user.user_type == "tutor" {
-            AppState::Tutor(token.token, HashMap::new())
+            AppState::Tutor(token.token, Vec::new())
         } else {
             AppState::Admin(token.token, Vec::new(), Vec::new())
         };

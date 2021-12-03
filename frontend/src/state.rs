@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 use yewdux::prelude::{BasicStore, Persistent, PersistentStore, Store};
@@ -10,7 +10,7 @@ use crate::api::{admin::Invite, tasks::Task, user::User};
 pub enum AppState {
     Guest,
     RequestedGuest(Task),
-    Tutor(String, HashMap<String, Task>),
+    Tutor(String, Vec<Task>),
     Admin(String, Vec<Invite>, Vec<User>),
 }
 
@@ -66,3 +66,13 @@ pub type LoginErrorStateStore = BasicStore<LoginErrorState>;
 pub struct RegisterErrorState(pub Option<String>);
 
 pub type RegisterErrorStateStore = BasicStore<RegisterErrorState>;
+
+#[derive(Clone, PartialEq, Default)]
+pub struct TaskErrorState(pub Option<String>);
+
+pub type TaskErrorStateStore = BasicStore<TaskErrorState>;
+
+#[derive(Clone, PartialEq, Default)]
+pub struct TaskState(pub Option<Task>);
+
+pub type TaskStateStore = BasicStore<TaskState>;

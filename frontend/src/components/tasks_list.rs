@@ -1,9 +1,10 @@
-use std::{collections::HashMap, mem};
+use std::mem;
 
 use anyhow::Result;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::console::log_1;
 use yew::prelude::*;
+use yew_router::components::Link;
 use yewdux::prelude::Dispatcher;
 use yewdux_functional::{use_store, StoreRef};
 
@@ -13,12 +14,13 @@ use crate::{
         ApiResult,
     },
     state::{AppState, AppStateStore, GetState, IndexErrorState, IndexErrorStateStore},
+    Route,
 };
 
 #[derive(PartialEq, Properties)]
 pub struct TasksListProps {
     pub token: String,
-    pub tasks: HashMap<String, Task>,
+    pub tasks: Vec<Task>,
 }
 
 #[function_component(TasksList)]
@@ -42,7 +44,7 @@ pub fn tasks_list(props: &TasksListProps) -> Html {
 
     let tasks = props
         .tasks
-        .values()
+        .iter()
         .map(|task| {
             html! {
                 <tr key={task.id.as_str()}>
@@ -54,26 +56,32 @@ pub fn tasks_list(props: &TasksListProps) -> Html {
                         </p>
                     </th>
                     <td>
-                        <a class="has-text-link is-unselectable is-hidden-touch"
+                        <Link<Route> route={Route::Task{task_id: task.id.clone()}}>
+                            <p class="has-text-link is-unselectable is-hidden-touch"
                             style="
                             display:inline-block;
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
                             max-width: 80ch;">
-                            {&task.title}
-                        </a>
+                                {&task.title}
+                            </p>
+
+                        </Link<Route>>
                     </td>
                     <td>
-                        <a class="has-text-link is-unselectable is-hidden-desktop"
+                        <Link<Route> route={Route::Task{task_id: task.id.clone()}}>
+                            <p class="has-text-link is-unselectable is-hidden-desktop"
                             style="
                             display:inline-block;
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
                             max-width: 20ch;">
-                            {&task.title}
-                        </a>
+                                {&task.title}
+                            </p>
+
+                        </Link<Route>>
                     </td>
 
                 </tr>
@@ -87,8 +95,8 @@ pub fn tasks_list(props: &TasksListProps) -> Html {
                 <p class="title has-text-dark is-2">{"Requests"}</p>
             </div>
 
-            <div class="table-container level">
-                <table class="table level-item">
+            <div class="table-container columns">
+                <table class="table column is-6 is-offset-3">
                     <tbody>
                         {tasks}
                     </tbody>
@@ -107,14 +115,9 @@ async fn refresh_tasks(
         ApiResult::Err(err) => err_store
             .dispatch()
             .reduce(|state| *state = IndexErrorState(Some(err.message))),
-        ApiResult::Ok(tasks) => app_store.dispatch().reduce(move |store| {
+        ApiResult::Ok(mut tasks) => app_store.dispatch().reduce(move |store| {
             if let AppState::Tutor(_, ref mut old_tasks) = store {
-                let mut tasks_mapped = tasks
-                    .into_iter()
-                    .map(|task| (task.id.clone(), task))
-                    .collect();
-
-                mem::swap(old_tasks, &mut tasks_mapped)
+                mem::swap(old_tasks, &mut tasks)
             }
         }),
     }

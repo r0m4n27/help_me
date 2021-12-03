@@ -38,6 +38,28 @@ pub async fn resolve_request(task_id: &str) -> Result<ApiResult<Value>> {
     Ok(response)
 }
 
+pub async fn process_task(token: &str, task_id: &str) -> Result<ApiResult<Value>> {
+    let response = Request::post(&format!("/api/tasks/{}/start", task_id))
+        .bearer(token)
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response)
+}
+
+pub async fn finish_task(token: &str, task_id: &str) -> Result<ApiResult<Value>> {
+    let response = Request::post(&format!("/api/tasks/{}/complete", task_id))
+        .bearer(token)
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response)
+}
+
 pub async fn get_task(task_id: &str) -> Result<ApiResult<Task>> {
     let response = Request::get(&format!("/api/tasks/{}", task_id))
         .send()

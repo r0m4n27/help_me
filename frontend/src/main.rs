@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::{Routable, Router};
 
-use pages::{Index, Login, Register};
+use pages::{Index, Login, Register, Task};
 
 mod api;
 mod components;
@@ -10,6 +10,8 @@ mod state;
 
 #[derive(Debug, Routable, PartialEq, Clone)]
 enum Route {
+    #[at("/task/:task_id")]
+    Task { task_id: String },
     #[at("/register")]
     Register,
     #[at("/login")]
@@ -29,6 +31,9 @@ fn app() -> Html {
         }
         Route::Register => {
             html! {<Register/>}
+        }
+        Route::Task { task_id } => {
+            html! {<Task task_id={task_id.clone()}/>}
         }
     };
 

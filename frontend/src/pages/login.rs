@@ -10,7 +10,7 @@ use crate::{
     Route,
 };
 
-use super::ErrorMessage;
+use super::{on_init, ErrorMessage, UninitialisedView};
 
 #[function_component(Login)]
 pub fn login() -> Html {
@@ -19,13 +19,22 @@ pub fn login() -> Html {
     let err_store = use_store::<LoginErrorStateStore>();
     let err_state = err_store.get_state();
 
+    {
+        let store = use_store::<AppStateStore>();
+        let app_state = store.get_state();
+
+        on_init(move || match app_state.as_ref() {
+            AppState::Tutor(_, _) | AppState::Admin(..) => replace_route(Route::Index),
+            _ => {}
+        });
+    }
+
     match app_state.as_ref() {
         AppState::Guest | AppState::RequestedGuest(_) => {
             html! {<LoginGuest err={err_state}/>}
         }
         AppState::Tutor(_, _) | AppState::Admin(..) => {
-            replace_route(Route::Index);
-            html! {}
+            html! {<UninitialisedView/>}
         }
     }
 }

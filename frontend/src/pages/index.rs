@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 use yew::prelude::*;
 
@@ -125,7 +125,7 @@ fn index_admin(props: &IndexAdminProps) -> Html {
 #[derive(Properties, PartialEq)]
 struct IndexTutorProps {
     token: String,
-    tasks: HashMap<String, Task>,
+    tasks: Vec<Task>,
     err: Rc<IndexErrorState>,
 }
 

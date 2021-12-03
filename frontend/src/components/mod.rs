@@ -6,6 +6,7 @@ mod register;
 mod requested_task;
 mod submit_task;
 mod tasks_list;
+mod tutor_task;
 mod users;
 mod view_task;
 
@@ -16,4 +17,5 @@ pub use register::RegisterBox;
 pub use requested_task::RequestedTask;
 pub use submit_task::SubmitTask;
 pub use tasks_list::{TasksList, TasksListProps};
+pub use tutor_task::{TutorTask, TutorTaskProps};
 pub use users::{Users, UsersProps};
