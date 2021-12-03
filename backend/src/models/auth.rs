@@ -7,6 +7,8 @@ use crate::models::hash_password;
 
 use super::{generate_random_string, QueriesError, QueriesResult, User, UserType};
 
+// user_name isn't accessed but is needed for the query
+#[allow(dead_code)]
 #[derive(Debug, FromRow)]
 struct UserToken {
     user_name: String,

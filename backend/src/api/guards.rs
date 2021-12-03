@@ -31,7 +31,7 @@ impl<'r> FromRequest<'r> for UserGuard<'r> {
         let token = try_outcome!(req
             .headers()
             .get_one("Authorization")
-            .and_then(|text| extract_bearer_token(text))
+            .and_then(extract_bearer_token)
             .or_forward(()));
 
         // We don't really care about the status

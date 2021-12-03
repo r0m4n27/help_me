@@ -52,35 +52,17 @@ where
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default)]
 pub struct IndexErrorState(pub Option<String>);
-
-impl Default for IndexErrorState {
-    fn default() -> Self {
-        Self(Default::default())
-    }
-}
 
 pub type IndexErrorStateStore = BasicStore<IndexErrorState>;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default)]
 pub struct LoginErrorState(pub Option<String>);
-
-impl Default for LoginErrorState {
-    fn default() -> Self {
-        Self(Default::default())
-    }
-}
 
 pub type LoginErrorStateStore = BasicStore<LoginErrorState>;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default)]
 pub struct RegisterErrorState(pub Option<String>);
-
-impl Default for RegisterErrorState {
-    fn default() -> Self {
-        Self(Default::default())
-    }
-}
 
 pub type RegisterErrorStateStore = BasicStore<RegisterErrorState>;
