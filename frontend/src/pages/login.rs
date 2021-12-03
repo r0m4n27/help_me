@@ -23,7 +23,7 @@ pub fn login() -> Html {
         AppState::Guest | AppState::RequestedGuest(_) => {
             html! {<LoginGuest err={err_state}/>}
         }
-        AppState::Tutor(_) | AppState::Admin(..) => {
+        AppState::Tutor(_, _) | AppState::Admin(..) => {
             replace_route(Route::Index);
             html! {}
         }

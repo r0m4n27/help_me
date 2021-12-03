@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 use serde::{Deserialize, Serialize};
 use yewdux::prelude::{BasicStore, Persistent, PersistentStore, Store};
@@ -10,7 +10,7 @@ use crate::api::{admin::Invite, tasks::Task, user::User};
 pub enum AppState {
     Guest,
     RequestedGuest(Task),
-    Tutor(String),
+    Tutor(String, HashMap<String, Task>),
     Admin(String, Vec<Invite>, Vec<User>),
 }
 

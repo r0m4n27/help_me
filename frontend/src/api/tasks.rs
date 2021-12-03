@@ -3,7 +3,7 @@ use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, to_string, Value};
 
-use super::ApiResult;
+use super::{ApiResult, BearerRequest};
 
 #[derive(Clone, Deserialize, Serialize, Debug, PartialEq)]
 pub struct Task {
@@ -60,6 +60,17 @@ pub async fn update_task(
 
     let response = Request::patch(&format!("/api/tasks/{}", task_id))
         .body(to_string(&payload).unwrap())
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response)
+}
+
+pub async fn get_tasks(token: &str) -> Result<ApiResult<Vec<Task>>> {
+    let response = Request::get("/api/tasks")
+        .bearer(token)
         .send()
         .await?
         .json()

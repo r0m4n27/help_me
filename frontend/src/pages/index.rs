@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 use yew::prelude::*;
 
@@ -6,7 +6,7 @@ use yewdux_functional::use_store;
 
 use crate::{
     api::{admin::Invite, tasks::Task, user::User},
-    components::{Invites, NavBar, RequestedTask, SubmitTask, Users},
+    components::{Invites, NavBar, RequestedTask, SubmitTask, TasksList, Users},
     state::{AppState, AppStateStore, GetState, IndexErrorState, IndexErrorStateStore},
 };
 
@@ -26,7 +26,11 @@ pub fn index() -> Html {
         AppState::RequestedGuest(task) => {
             html! {<IndexGuestRequested task={task.clone()} err={err_state}/>}
         }
-        AppState::Tutor(_) => html! {},
+        AppState::Tutor(token, tasks) => html! {
+            <IndexTutor err={err_state}
+                token={token.clone()}
+                tasks={tasks.clone()}/>
+        },
         AppState::Admin(token, invites, users) => html! {
             <IndexAdmin err={err_state}
                 token={token.clone()}
@@ -111,6 +115,31 @@ fn index_admin(props: &IndexAdminProps) -> Html {
                         </div>
                     </div>
                 </div>
+                <ErrorMessage err={props.err.0.clone()}/>
+            </div>
+        </div>
+    </section>
+    }
+}
+
+#[derive(Properties, PartialEq)]
+struct IndexTutorProps {
+    token: String,
+    tasks: HashMap<String, Task>,
+    err: Rc<IndexErrorState>,
+}
+
+#[function_component(IndexTutor)]
+fn index_tutor(props: &IndexTutorProps) -> Html {
+    html! {
+        <section class="hero is-info is-fullheight">
+        <div class="hero-head">
+            <NavBar/>
+        </div>
+
+        <div class="hero-body section">
+            <div class="container">
+                <TasksList tasks={props.tasks.clone()} token={props.token.clone()}/>
                 <ErrorMessage err={props.err.0.clone()}/>
             </div>
         </div>
