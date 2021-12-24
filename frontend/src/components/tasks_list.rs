@@ -56,7 +56,7 @@ pub fn tasks_list(props: &TasksListProps) -> Html {
                         </p>
                     </th>
                     <td>
-                        <Link<Route> route={Route::Task{task_id: task.id.clone()}}>
+                        <Link<Route> to={Route::Task{task_id: task.id.clone()}}>
                             <p class="has-text-link is-unselectable is-hidden-touch"
                             style="
                             display:inline-block;
@@ -70,7 +70,7 @@ pub fn tasks_list(props: &TasksListProps) -> Html {
                         </Link<Route>>
                     </td>
                     <td>
-                        <Link<Route> route={Route::Task{task_id: task.id.clone()}}>
+                        <Link<Route> to={Route::Task{task_id: task.id.clone()}}>
                             <p class="has-text-link is-unselectable is-hidden-desktop"
                             style="
                             display:inline-block;

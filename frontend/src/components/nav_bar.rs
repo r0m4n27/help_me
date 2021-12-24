@@ -46,7 +46,7 @@ struct NavBarBrandProps {
 fn nav_bar_brand(props: &NavBarBrandProps) -> Html {
     html! {
         <div class="navbar-brand">
-            <Link<Route> route={Route::Index} classes={classes!("navbar-item")}>
+            <Link<Route> to={Route::Index} classes={classes!("navbar-item")}>
                 <p class="title is-unselectable">{"Help Me"}</p>
             </Link<Route>>
 
@@ -84,7 +84,7 @@ fn nav_bar_items(props: &NavBarItemsProps) -> Html {
     let button = match state.as_ref() {
         AppState::Guest | AppState::RequestedGuest(_) => {
             html! {
-                <Link<Route> route={Route::Login} classes={classes!("button", "is-primary")}>
+                <Link<Route> to={Route::Login} classes={classes!("button", "is-primary")}>
                     <strong>{"Log In"}</strong>
                 </Link<Route>>
             }

@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use yew_router::{Routable, Router};
+use yew_router::{BrowserRouter, Routable, Switch};
 
 use pages::{Index, Login, Register, Task};
 
@@ -38,7 +38,9 @@ fn app() -> Html {
     };
 
     html! {
-        <Router<Route> render={Router::render(switch)} />
+        <BrowserRouter>
+            <Switch<Route> render={Switch::render(switch)}/>
+        </BrowserRouter>
     }
 }
 

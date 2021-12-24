@@ -1,4 +1,4 @@
-use blake2::{Blake2b, Digest};
+use blake2::{Blake2b512, Digest};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use sqlx::{self, sqlite::SqlitePoolOptions, Pool, Sqlite};
 
@@ -92,5 +92,8 @@ fn generate_random_string(len: usize) -> String {
 }
 
 fn hash_password(password: &str) -> String {
-    format!("{:x}", Blake2b::digest(password.as_bytes()))
+    let mut hasher = Blake2b512::new();
+    hasher.update(password.as_bytes());
+
+    format!("{:x}", hasher.finalize())
 }

@@ -4,7 +4,7 @@ use anyhow::Result;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::console::log_1;
 use yew::prelude::*;
-use yew_router::replace_route;
+use yew_router::{history::History, hooks::use_history};
 use yewdux::prelude::Dispatcher;
 use yewdux_functional::{use_store, StoreRef};
 
@@ -30,6 +30,7 @@ pub fn task(props: &TaskProps) -> Html {
     let app_state = store.get_state();
     let err_store = use_store::<TaskErrorStateStore>();
     let err_state = err_store.get_state();
+    let history = use_history().unwrap();
 
     {
         let store = use_store::<AppStateStore>();
@@ -37,7 +38,7 @@ pub fn task(props: &TaskProps) -> Html {
 
         on_init(move || match app_state.as_ref() {
             AppState::Tutor(_, _) => {}
-            _ => replace_route(Route::Index),
+            _ => history.replace(Route::Index),
         });
     }
 

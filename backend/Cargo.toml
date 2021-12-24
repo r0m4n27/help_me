@@ -6,7 +6,7 @@ name = "help_me-backend"
 version = "0.1.0"
 
 [dependencies]
-blake2 = "0.9"
+blake2 = "0.10"
 chrono = "0.4"
 dotenv = "0.15.0"
 fern = { version = "0.6", features = ["colored"] }

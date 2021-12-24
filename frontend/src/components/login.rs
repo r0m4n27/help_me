@@ -66,7 +66,7 @@ pub fn login_box() -> Html {
                     </a>
                     <Link<Route>
                         classes={classes!("has-text-link", "level-item")}
-                        route={Route::Register}>
+                        to={Route::Register}>
                         {"No account? Register with an invite code"}
                     </Link<Route>>
                 </div>
