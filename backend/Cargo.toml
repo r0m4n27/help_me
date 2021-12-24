@@ -9,25 +9,25 @@ version = "0.1.0"
 blake2 = "0.9"
 chrono = "0.4"
 dotenv = "0.15.0"
-fern = {version = "0.6", features = ["colored"]}
+fern = { version = "0.6", features = ["colored"] }
 futures = "0.3"
 lazy_static = "1.4.0"
 log = "0.4.14"
 rand = "0.8.4"
-rocket_cors = {git = "https://github.com/lawliet89/rocket_cors", branch = "master"}
-serde = {version = "1.0", features = ["derive"]}
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0"
-tokio = {version = "1.13.0", features = ["full"]}
+tokio = { version = "1.13.0", features = ["full"] }
 
 [dependencies.sqlx]
 default_features = false
 features = ["runtime-tokio-rustls", "sqlite", "macros", "migrate"]
 version = "0.5.6"
 
-# There color codes and emojis in the log file
-# but the master branch can't be used because we need rocket_cors
-# hopefully this will be fixed in a future version
+# Use the master branch
+# to disable cli colors in the log
+# and emojis are also gone
 [dependencies.rocket]
 features = ["json"]
-version = "0.5.0-rc.1"
+git = "https://github.com/SergioBenitez/Rocket"
+rev = "8cae077"
