@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use seed::prelude::*;
 
 use crate::{
-    model::{Model, User},
+    model::{Model, Urls, User},
     msg::Msg,
 };
 
@@ -20,9 +20,12 @@ pub fn nav_bar(model: &Model) -> Node<Msg> {
 }
 
 fn nav_bar_brand(model: &Model) -> Node<Msg> {
-    // TODO: Add HomeLink
+    let urls = Urls::new(&model.base_url);
     let title = a![
         C!["navbar-item"],
+        attrs! {
+            At::Href => urls.index()
+        },
         p![C!["title", "is-unselectable"], "Help Me"]
     ];
 
@@ -56,10 +59,18 @@ fn nav_bar_brand(model: &Model) -> Node<Msg> {
 }
 
 fn nav_bar_items(model: &Model) -> Node<Msg> {
-    // TODO: Clicks
+    // TODO: Log Out
+    let urls = Urls::new(&model.base_url);
+
     let button = match model.user {
-        User::Guest | User::RequestedGuest(_) => button![C!["button", "is-primary"], "Log In"],
-        User::Admin(_) | User::Tutor(_) => button![C!["button", "is-danger"], "Log Out"],
+        User::Guest | User::RequestedGuest(_) => a![
+            C!["button", "is-primary"],
+            "Log In",
+            attrs! {
+                At::Href => urls.login()
+            }
+        ],
+        User::Admin(_) | User::Tutor(_) => a![C!["button", "is-danger"], "Log Out"],
     };
 
     let github = div![

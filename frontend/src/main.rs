@@ -5,7 +5,7 @@ use msg::Msg;
 use pages::index::index_view;
 use seed::prelude::*;
 
-use model::Model;
+use model::{Model, Page};
 
 mod model;
 mod msg;
@@ -13,7 +13,9 @@ mod pages;
 mod views;
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
-    Model::init(url, orders)
+    orders.subscribe(Msg::UrlChanged);
+
+    Model::init(url)
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
@@ -21,7 +23,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 pub fn view(model: &Model) -> Node<Msg> {
-    index_view(model)
+    match &model.page {
+        Page::Index { error } => index_view(model),
+        Page::Login { error } => index_view(model),
+        Page::Register { error } => index_view(model),
+        Page::Task { task_id, error } => index_view(model),
+    }
 }
 
 fn main() {
