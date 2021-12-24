@@ -1,7 +1,8 @@
 use std::rc::Rc;
 
+use wasm_bindgen::prelude::Closure;
 use yew::prelude::*;
-use yew_router::{history::History, hooks::use_history};
+use yew_router::hooks::use_navigator;
 use yewdux_functional::use_store;
 
 use crate::{
@@ -18,17 +19,16 @@ pub fn register() -> Html {
     let app_state = store.get_state();
     let err_store = use_store::<RegisterErrorStateStore>();
     let err_state = err_store.get_state();
-    let history = use_history().unwrap();
 
-    {
+    on_init(Closure::once(|| {
         let store = use_store::<AppStateStore>();
         let app_state = store.get_state();
-
-        on_init(move || match app_state.as_ref() {
-            AppState::Tutor(_, _) | AppState::Admin(..) => history.replace(Route::Index),
+        let navigator = use_navigator().unwrap();
+        match app_state.as_ref() {
+            AppState::Tutor(_, _) | AppState::Admin(..) => navigator.replace(Route::Index),
             _ => {}
-        });
-    }
+        }
+    }));
 
     match app_state.as_ref() {
         AppState::Guest | AppState::RequestedGuest(_) => {

@@ -1,0 +1,26 @@
+[package]
+authors = ["Roman Kolesnikov <roman.kolesnikov@hs-augsburg.de>"]
+edition = "2021"
+license = "MIT"
+name = "help_me-frontend-old"
+version = "0.1.0"
+
+# New features are added in very often but are not released that much
+# so we have to use the repos instead of versions :(
+[dependencies]
+anyhow = "1.0"
+reqwasm = "0.3.1"
+serde = "1.0"
+serde_json = "1.0"
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+wasm-bindgen-futures = "0.4.28"
+# Master branch has to be used because otherwise yewdux wouldn't work
+yew = { git = "https://github.com/yewstack/yew" }
+yew-router = { git = "https://github.com/yewstack/yew" }
+yewdux = { git = "https://github.com/intendednull/yewdux.git" }
+yewdux-functional = { git = "https://github.com/intendednull/yewdux.git" }
+
+[dependencies.web-sys]
+version = "0.3"
+# We need to enable all the web-sys features we want to use!
+features = ["console"]

@@ -46,12 +46,12 @@ fn uninitialised_view() -> Html {
     }
 }
 
-fn on_init<F: FnOnce() + 'static>(fun: F) {
+fn on_init<F: FnOnce() + 'static + ?Sized>(fun: Closure<F>) {
     use_effect_with_deps(
         move |_| {
             spawn_local(async move {
                 let window = window().unwrap();
-                let closure = Closure::once(fun);
+                let closure = fun;
                 window
                     .set_timeout_with_callback_and_timeout_and_arguments_0(
                         closure.as_ref().unchecked_ref(),

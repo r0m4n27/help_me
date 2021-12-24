@@ -2,7 +2,7 @@ use anyhow::Result;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::console::log_1;
 use yew::prelude::*;
-use yew_router::{history::History, hooks::use_history};
+use yew_router::hooks::use_navigator;
 use yewdux::prelude::Dispatcher;
 use yewdux_functional::{use_store, StoreRef};
 
@@ -45,14 +45,14 @@ pub fn tutor_task(props: &TutorTaskProps) -> Html {
         let task_id = props.task.id.clone();
         let task_store = use_store::<TaskStateStore>();
         let err_store = use_store::<TaskErrorStateStore>();
-        let history = use_history().unwrap();
+        let navigator = use_navigator().unwrap();
 
         Callback::once(move |_| {
             spawn_local(async move {
                 if let Err(err) = finish_and_update(token, task_id, err_store, task_store).await {
                     log_1(&err.to_string().into())
                 } else {
-                    history.replace(Route::Index)
+                    navigator.replace(Route::Index)
                 }
             })
         })
