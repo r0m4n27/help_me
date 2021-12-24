@@ -7,7 +7,7 @@ use crate::{
     msg::Msg,
 };
 
-pub fn nav_bar(model: &Model) -> Node<Msg> {
+pub fn nav_bar_view(model: &Model) -> Node<Msg> {
     nav![
         C!["navbar"],
         attrs! {

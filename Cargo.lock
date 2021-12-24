@@ -710,6 +710,7 @@ dependencies = [
  "anyhow",
  "seed",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

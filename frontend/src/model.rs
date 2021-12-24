@@ -1,6 +1,10 @@
+use std::mem;
+
 use seed::prelude::*;
 
 use serde::{Deserialize, Serialize};
+
+use crate::api::task::Task;
 
 pub struct Model {
     pub expanded_menu: bool,
@@ -31,17 +35,17 @@ impl Model {
 #[derive(Serialize, Deserialize)]
 pub enum User {
     Guest,
-    RequestedGuest(String),
+    RequestedGuest(Task),
     Admin(String),
     Tutor(String),
 }
 
 impl User {
-    pub fn init() -> Self {
+    fn init() -> Self {
         LocalStorage::get(User::storage_key()).unwrap_or(User::Guest)
     }
 
-    pub fn save(&self) {
+    fn save(&self) {
         // Webstorage error can't be converted to an anyhow error
         LocalStorage::insert(User::storage_key(), self).expect("Can't save User")
     }
@@ -74,7 +78,7 @@ const TASK_PART: &str = "task";
 
 impl Page {
     pub fn init(mut url: Url) -> Self {
-        match url.remaining_hash_path_parts().as_slice() {
+        match url.remaining_path_parts().as_slice() {
             [] => Page::Index { error: None },
             [LOGIN_PART] => Page::Login { error: None },
             [REGISTER_PART] => Page::Register { error: None },
@@ -84,6 +88,26 @@ impl Page {
             },
             _ => Page::Index { error: None },
         }
+    }
+
+    pub fn error(&self) -> &Option<String> {
+        match self {
+            Page::Index { error } => error,
+            Page::Login { error } => error,
+            Page::Register { error } => error,
+            Page::Task { task_id: _, error } => error,
+        }
+    }
+
+    pub fn update_error(&mut self, message: String) {
+        let old_error = match self {
+            Page::Index { error } => error,
+            Page::Login { error } => error,
+            Page::Register { error } => error,
+            Page::Task { task_id: _, error } => error,
+        };
+        let mut new_error = Some(message);
+        mem::swap(old_error, &mut new_error)
     }
 
     #[inline]
@@ -106,17 +130,7 @@ impl<'a> Urls<'a> {
         self.base_url()
     }
 
-    pub fn task(self, task_id: &str) -> Url {
-        self.base_url()
-            .add_hash_path_part(TASK_PART)
-            .add_hash_path_part(task_id)
-    }
-
     pub fn login(self) -> Url {
-        self.base_url().add_hash_path_part(LOGIN_PART)
-    }
-
-    pub fn register(self) -> Url {
-        self.base_url().add_hash_path_part(REGISTER_PART)
+        self.base_url().add_path_part(LOGIN_PART)
     }
 }

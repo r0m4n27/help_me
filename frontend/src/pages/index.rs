@@ -1,15 +1,18 @@
 use seed::prelude::*;
 
-use crate::{model::Model, msg::Msg, views::nav_bar};
+use crate::{
+    model::Model,
+    msg::Msg,
+    views::{guest_task_view, submit_task_view},
+};
+
+use super::hero_view;
 
 pub fn index_view(model: &Model) -> Node<Msg> {
-    index_guest_view(model)
-}
-
-fn index_guest_view(model: &Model) -> Node<Msg> {
-    section![
-        C!["hero", "is-info", "is-fullheight"],
-        div![C!["hero-head"], nav_bar(model)],
-        div![C!["hero-body", "section"], div![C!["container"]]]
-    ]
+    match &model.user {
+        crate::model::User::Guest => hero_view(submit_task_view(), model),
+        crate::model::User::RequestedGuest(task) => hero_view(guest_task_view(task), model),
+        crate::model::User::Admin(_) => todo!(),
+        crate::model::User::Tutor(_) => todo!(),
+    }
 }

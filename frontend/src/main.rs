@@ -2,11 +2,12 @@
 extern crate seed;
 
 use msg::Msg;
-use pages::index::index_view;
+use pages::page_view;
 use seed::prelude::*;
 
-use model::{Model, Page};
+use model::Model;
 
+mod api;
 mod model;
 mod msg;
 mod pages;
@@ -23,12 +24,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 pub fn view(model: &Model) -> Node<Msg> {
-    match &model.page {
-        Page::Index { error } => index_view(model),
-        Page::Login { error } => index_view(model),
-        Page::Register { error } => index_view(model),
-        Page::Task { task_id, error } => index_view(model),
-    }
+    page_view(model)
 }
 
 fn main() {
