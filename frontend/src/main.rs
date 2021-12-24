@@ -1,47 +1,27 @@
-use seed::{prelude::*, *};
+#[macro_use]
+extern crate seed;
 
-pub fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
-    Model { counter: 0 }
+use msg::Msg;
+use pages::index::index_view;
+use seed::prelude::*;
+
+use model::Model;
+
+mod model;
+mod msg;
+mod pages;
+mod views;
+
+fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
+    Model::init(url, orders)
 }
 
-// ------ ------
-//     Model
-// ------ ------
-
-// `Model` describes our app state.
-pub struct Model {
-    counter: i32,
+fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
+    msg.update(model, orders)
 }
 
-// ------ ------
-//    Update
-// ------ ------
-
-// (Remove the line below once any of your `Msg` variants doesn't implement `Copy`.)
-#[derive(Copy, Clone)]
-// `Msg` describes the different events you can modify state with.
-pub enum Msg {
-    Increment,
-}
-
-// `update` describes how to handle each `Msg`.
-pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
-    match msg {
-        Msg::Increment => model.counter += 1,
-    }
-}
-
-// ------ ------
-//     View
-// ------ ------
-
-// `view` describes what to display.
 pub fn view(model: &Model) -> Node<Msg> {
-    div![
-        "This is a counter: ",
-        C!["counter"],
-        button![model.counter, ev(Ev::Click, |_| Msg::Increment),],
-    ]
+    index_view(model)
 }
 
 fn main() {

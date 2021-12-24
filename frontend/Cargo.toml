@@ -7,3 +7,5 @@ version = "0.1.0"
 
 [dependencies]
 seed = "0.8.0"
+serde = "1.0"
+anyhow = "1.0"
