@@ -14,7 +14,7 @@ pub fn submit_task_view(
     let buttons = div![button![
         C!["button", "is-primary"],
         "Submit",
-        ev(Ev::Click, move |_| { Msg::Page(PageMsg::SubmitTask) })
+        ev(Ev::Click, move |_| { Msg::Page(PageMsg::Submit) })
     ]];
 
     let edit_task_props = EditTaskProps {

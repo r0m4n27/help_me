@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::api::task::Task;
 
-use super::page::{GuestPages, Page, RequestedGuestPages};
+use super::page::{GuestPages, Page, RequestedGuestIndexData, RequestedGuestPages};
 
 pub enum User {
     Guest(GuestPages),
@@ -26,7 +26,7 @@ impl User {
         match saved_user {
             SavedUser::Guest => User::Guest(GuestPages::new(url)),
             SavedUser::RequestedGuest(task) => {
-                let pages = RequestedGuestPages::new(url, &task);
+                let pages = RequestedGuestPages::new(url);
                 User::RequestedGuest(task, pages)
             }
         }
@@ -45,9 +45,7 @@ impl User {
     pub fn change_page(&mut self, url: Url) {
         match self {
             User::Guest(old_pages) => *old_pages = GuestPages::new(url),
-            User::RequestedGuest(task, old_pages) => {
-                *old_pages = RequestedGuestPages::new(url, task)
-            }
+            User::RequestedGuest(_, old_pages) => *old_pages = RequestedGuestPages::new(url),
         }
     }
 
@@ -76,6 +74,28 @@ impl User {
         }
 
         should_redirect
+    }
+
+    pub fn edit_task(&mut self) {
+        if let User::RequestedGuest(_, RequestedGuestPages::Index { page_data, .. }) = self {
+            *page_data = RequestedGuestIndexData::Editing {
+                title_ref: ElRef::new(),
+                description_ref: ElRef::new(),
+            }
+        }
+    }
+
+    pub fn cancel_edit_task(&mut self) {
+        if let User::RequestedGuest(_, RequestedGuestPages::Index { page_data, .. }) = self {
+            *page_data = RequestedGuestIndexData::Viewing
+        }
+    }
+
+    pub fn update_task(&mut self, new_task: Task) {
+        if let User::RequestedGuest(task, RequestedGuestPages::Index { page_data, .. }) = self {
+            *task = new_task;
+            *page_data = RequestedGuestIndexData::Viewing
+        }
     }
 
     #[inline]

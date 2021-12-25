@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use seed::prelude::*;
 
 use crate::{
-    model::{page::Urls, user::User, Model},
+    model::{user::User, Model},
     msg::Msg,
 };
 

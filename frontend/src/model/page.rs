@@ -3,8 +3,6 @@ use seed::prelude::{
     *,
 };
 
-use crate::api::task::Task;
-
 const LOGIN_PART: &str = "login";
 // const REGISTER_PART: &str = "register";
 // const TASK_PART: &str = "task";
@@ -88,13 +86,10 @@ pub enum RequestedGuestPages {
 }
 
 impl RequestedGuestPages {
-    pub fn new(mut url: Url, task: &Task) -> Self {
+    pub fn new(mut url: Url) -> Self {
         match url.remaining_path_parts().as_slice() {
             [] => RequestedGuestPages::Index {
-                page_data: RequestedGuestIndexData::Viewing {
-                    title: task.title.clone(),
-                    description: task.body.clone(),
-                },
+                page_data: RequestedGuestIndexData::Viewing,
                 error: None,
             },
             _ => RequestedGuestPages::NotFound,
@@ -123,10 +118,7 @@ impl Page for RequestedGuestPages {
 }
 
 pub enum RequestedGuestIndexData {
-    Viewing {
-        title: String,
-        description: String,
-    },
+    Viewing,
     Editing {
         title_ref: ElRef<HtmlInputElement>,
         description_ref: ElRef<HtmlTextAreaElement>,

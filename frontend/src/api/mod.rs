@@ -1,3 +1,5 @@
+use seed::prelude::*;
+
 use serde::{Deserialize, Serialize};
 
 pub mod task;
@@ -23,4 +25,14 @@ impl<T> ApiResult<T> {
 #[derive(Deserialize, Serialize)]
 pub struct ApiError {
     pub message: String,
+}
+
+trait BearerRequest {
+    fn bearer(self, token: &str) -> Self;
+}
+
+impl<'a> BearerRequest for Request<'_> {
+    fn bearer(self, token: &str) -> Self {
+        self.header(Header::authorization(format!("bearer {}", token)))
+    }
 }

@@ -6,14 +6,15 @@ use crate::{
     views::nav_bar_view,
 };
 
-use self::guest::guest_view;
+use self::{guest::guest_view, requested_guest::requested_guest_view};
 
 mod guest;
+mod requested_guest;
 
 pub fn page_view(model: &Model) -> Node<Msg> {
     match &model.user {
         User::Guest(pages) => guest_view(pages, model),
-        User::RequestedGuest(_, _) => todo!(),
+        User::RequestedGuest(task, pages) => requested_guest_view(task, pages, model),
     }
 }
 
