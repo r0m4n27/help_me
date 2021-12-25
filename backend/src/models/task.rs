@@ -175,6 +175,11 @@ impl<'a> TaskQueries<'a> {
     }
 
     pub async fn edit_title(&self, id: &str, title: &str) -> QueriesResult<()> {
+        if title.is_empty() {
+            return Err(QueriesError::IllegalState(
+                "Title can't be empty!".to_string(),
+            ));
+        }
         query!("UPDATE task SET title = $1 WHERE id = $2", title, id)
             .execute(self.pool)
             .await?;
@@ -185,6 +190,12 @@ impl<'a> TaskQueries<'a> {
     }
 
     pub async fn edit_body(&self, id: &str, body: &str) -> QueriesResult<()> {
+        if body.is_empty() {
+            return Err(QueriesError::IllegalState(
+                "Body can't be empty!".to_string(),
+            ));
+        }
+
         query!("UPDATE task SET body = $1 WHERE id = $2", body, id)
             .execute(self.pool)
             .await?;
