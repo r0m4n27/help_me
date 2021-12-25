@@ -14,16 +14,14 @@ mod pages;
 mod views;
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
-    orders.subscribe(Msg::UrlChanged);
-
-    Model::init(url)
+    Model::init(url, orders)
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     msg.update(model, orders)
 }
 
-pub fn view(model: &Model) -> Node<Msg> {
+fn view(model: &Model) -> Node<Msg> {
     page_view(model)
 }
 

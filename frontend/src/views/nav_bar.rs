@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use seed::prelude::*;
 
 use crate::{
-    model::{Model, Urls, User},
+    model::{page::Urls, user::User, Model},
     msg::Msg,
 };
 
@@ -20,11 +20,10 @@ pub fn nav_bar_view(model: &Model) -> Node<Msg> {
 }
 
 fn nav_bar_brand(model: &Model) -> Node<Msg> {
-    let urls = Urls::new(&model.base_url);
     let title = a![
         C!["navbar-item"],
         attrs! {
-            At::Href => urls.index()
+            At::Href => model.urls.index()
         },
         p![C!["title", "is-unselectable"], "Help Me"]
     ];
@@ -60,17 +59,15 @@ fn nav_bar_brand(model: &Model) -> Node<Msg> {
 
 fn nav_bar_items(model: &Model) -> Node<Msg> {
     // TODO: Log Out
-    let urls = Urls::new(&model.base_url);
-
+    // a![C!["button", "is-danger"], "Log Out"],
     let button = match model.user {
-        User::Guest | User::RequestedGuest(_) => a![
+        User::Guest(_) | User::RequestedGuest(_, _) => a![
             C!["button", "is-primary"],
             "Log In",
             attrs! {
-                At::Href => urls.login()
+                At::Href => model.urls.login()
             }
         ],
-        User::Admin(_) | User::Tutor(_) => a![C!["button", "is-danger"], "Log Out"],
     };
 
     let github = div![

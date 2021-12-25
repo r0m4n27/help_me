@@ -3,32 +3,19 @@ use seed::prelude::{
     *,
 };
 
-use crate::msg::{Msg, RequestApiMsg};
+use crate::msg::{page::PageMsg, Msg};
 
 use super::edit_task::{edit_task_view, EditTaskProps};
 
-pub fn submit_task_view() -> Node<Msg> {
-    let title_ref: ElRef<HtmlInputElement> = ElRef::new();
-    let description_ref: ElRef<HtmlTextAreaElement> = ElRef::new();
-
-    let buttons = {
-        let title_ref = title_ref.clone();
-        let description_ref = description_ref.clone();
-
-        div![button![
-            C!["button", "is-primary"],
-            "Submit",
-            ev(Ev::Click, move |_| {
-                let title = title_ref.get().expect("Title isn't redered").value();
-                let description = description_ref
-                    .get()
-                    .expect("Description isn't redered")
-                    .value();
-
-                Msg::RequestApi(RequestApiMsg::SubmitTask(title, description))
-            })
-        ]]
-    };
+pub fn submit_task_view(
+    title_ref: &ElRef<HtmlInputElement>,
+    description_ref: &ElRef<HtmlTextAreaElement>,
+) -> Node<Msg> {
+    let buttons = div![button![
+        C!["button", "is-primary"],
+        "Submit",
+        ev(Ev::Click, move |_| { Msg::Page(PageMsg::SubmitTask) })
+    ]];
 
     let edit_task_props = EditTaskProps {
         header: "Submit Request",

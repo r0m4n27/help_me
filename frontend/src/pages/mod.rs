@@ -1,20 +1,19 @@
 use seed::prelude::*;
 
-use crate::{model::Model, msg::Msg, views::nav_bar_view};
+use crate::{
+    model::{user::User, Model},
+    msg::Msg,
+    views::nav_bar_view,
+};
 
-use self::index::index_view;
+use self::guest::guest_view;
 
-mod index;
+mod guest;
 
 pub fn page_view(model: &Model) -> Node<Msg> {
-    match &model.page {
-        crate::model::Page::Index { error: _ } => index_view(model),
-        crate::model::Page::Login { error: _ } => div![],
-        crate::model::Page::Register { error: _ } => div![],
-        crate::model::Page::Task {
-            task_id: _,
-            error: _,
-        } => div![],
+    match &model.user {
+        User::Guest(pages) => guest_view(pages, model),
+        User::RequestedGuest(_, _) => todo!(),
     }
 }
 
@@ -30,7 +29,7 @@ fn hero_view(content: Node<Msg>, model: &Model) -> Node<Msg> {
 }
 
 fn error_message_view(model: &Model) -> Node<Msg> {
-    match model.page.error() {
+    match model.user.error_message() {
         Some(err) => div![C!["notification", "is-danger"], err],
         None => div![],
     }

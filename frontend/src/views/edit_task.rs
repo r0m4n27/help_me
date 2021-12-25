@@ -9,8 +9,8 @@ pub struct EditTaskProps<'a> {
     pub header: &'a str,
     pub start_title: Option<&'a str>,
     pub start_description: Option<&'a str>,
-    pub title_ref: ElRef<HtmlInputElement>,
-    pub description_ref: ElRef<HtmlTextAreaElement>,
+    pub title_ref: &'a ElRef<HtmlInputElement>,
+    pub description_ref: &'a ElRef<HtmlTextAreaElement>,
     pub buttons: Node<Msg>,
 }
 
@@ -29,7 +29,7 @@ pub fn edit_task_view(props: EditTaskProps<'_>) -> Node<Msg> {
             p![C!["title", "has-text-dark", "is-5", "level-left"], "Title"],
             input![
                 C!["input"],
-                el_ref(&props.title_ref),
+                el_ref(props.title_ref),
                 attrs! {
                     At::Value => title,
                     At::Size => "50",
@@ -45,7 +45,7 @@ pub fn edit_task_view(props: EditTaskProps<'_>) -> Node<Msg> {
             ],
             textarea![
                 C!["textarea", "has-fixed-size"],
-                el_ref(&props.description_ref),
+                el_ref(props.description_ref),
                 attrs! {
                     At::Value => description,
                     At::Type => "textarea",

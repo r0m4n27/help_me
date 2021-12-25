@@ -3,7 +3,7 @@ use seed::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::ApiResult;
+use crate::msg::api::ResponseApiMsg;
 
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct Task {
@@ -13,7 +13,7 @@ pub struct Task {
     pub state: String,
 }
 
-pub async fn submit_task(title: &str, description: &str) -> fetch::Result<ApiResult<Task>> {
+pub async fn submit_task(title: &str, description: &str) -> fetch::Result<ResponseApiMsg> {
     let payload = json!({
         "title": title,
         "body": description
@@ -27,5 +27,5 @@ pub async fn submit_task(title: &str, description: &str) -> fetch::Result<ApiRes
         .json()
         .await?;
 
-    Ok(response)
+    Ok(ResponseApiMsg::SubmitTask(response))
 }
