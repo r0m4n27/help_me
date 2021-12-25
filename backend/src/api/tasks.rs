@@ -1,5 +1,4 @@
 use rocket::{serde::json::Json, Route, State};
-use serde_json::{json, Value};
 
 use crate::models::{Queries, Task};
 
@@ -47,10 +46,11 @@ async fn get_task(queries: &State<Queries>, task_id: String) -> ApiResult<Task> 
 }
 
 #[post("/<task_id>/resolve")]
-async fn resolve_task(queries: &State<Queries>, task_id: String) -> ApiResult<Value> {
+async fn resolve_task(queries: &State<Queries>, task_id: String) -> ApiResult<Task> {
     queries.task.resolve_task(&task_id).await?;
+    let task = queries.task.get_task(&task_id).await?;
 
-    ok(json!({}))
+    ok(task)
 }
 
 #[post("/<task_id>/start")]
@@ -58,11 +58,12 @@ async fn start_task(
     user_guard: Result<UserGuard<'_>, ApiError>,
     queries: &State<Queries>,
     task_id: String,
-) -> ApiResult<Value> {
+) -> ApiResult<Task> {
     user_guard?;
     queries.task.start_task(&task_id).await?;
+    let task = queries.task.get_task(&task_id).await?;
 
-    ok(json!({}))
+    ok(task)
 }
 
 #[post("/<task_id>/complete")]
@@ -70,11 +71,12 @@ async fn complete_task(
     user_guard: Result<UserGuard<'_>, ApiError>,
     queries: &State<Queries>,
     task_id: String,
-) -> ApiResult<Value> {
+) -> ApiResult<Task> {
     user_guard?;
     queries.task.complete_task(&task_id).await?;
+    let task = queries.task.get_task(&task_id).await?;
 
-    ok(json!({}))
+    ok(task)
 }
 
 #[patch("/<task_id>", data = "<data>")]
@@ -82,7 +84,7 @@ async fn edit_task(
     queries: &State<Queries>,
     data: Json<EditTaskForm>,
     task_id: String,
-) -> ApiResult<Value> {
+) -> ApiResult<Task> {
     if let Some(ref title) = data.title {
         queries.task.edit_title(&task_id, title).await?;
     }
@@ -90,8 +92,9 @@ async fn edit_task(
     if let Some(ref body) = data.body {
         queries.task.edit_body(&task_id, body).await?;
     }
+    let task = queries.task.get_task(&task_id).await?;
 
-    ok(json!({}))
+    ok(task)
 }
 
 pub fn tasks_routes() -> Vec<Route> {
