@@ -36,11 +36,19 @@ impl Msg {
                 }
             }
             Msg::Refresh => {
-                if let User::RequestedGuest(data) = &model.user {
-                    orders.send_msg(Msg::Api(ApiMsg::Request(
-                        RequestApiMsg::RefreshRequestedGuest(data.task.id.clone()),
-                    )));
-                };
+                match &model.user {
+                    User::RequestedGuest(data) => {
+                        orders.send_msg(Msg::Api(ApiMsg::Request(
+                            RequestApiMsg::RefreshRequestedGuest(data.task.id.clone()),
+                        )));
+                    }
+                    User::Admin(data) => {
+                        orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::RefreshAdmin(
+                            data.token.clone(),
+                        ))));
+                    }
+                    _ => {}
+                }
                 orders.skip();
             }
         }

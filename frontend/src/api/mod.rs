@@ -2,7 +2,9 @@ use seed::prelude::*;
 
 use serde::{Deserialize, Serialize};
 
+pub mod admin;
 pub mod auth;
+pub mod refresh;
 pub mod task;
 pub mod user;
 

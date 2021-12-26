@@ -1,9 +1,12 @@
+use std::collections::HashSet;
+
 use seed::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::api::task::Task;
+use crate::api::{admin::Invite, task::Task};
 
 use super::page::{
+    admin::AdminPage,
     guest::GuestPage,
     requested_guest::{RequestedGuestIndexData, RequestedGuestPage},
     Page,
@@ -12,7 +15,7 @@ use super::page::{
 pub enum User {
     Guest(GuestData),
     RequestedGuest(RequestedGuestData),
-    Admin(String),
+    Admin(AdminData),
     Tutor(String),
 }
 
@@ -20,6 +23,12 @@ pub struct GuestData(pub GuestPage);
 pub struct RequestedGuestData {
     pub task: Task,
     pub page: RequestedGuestPage,
+}
+
+pub struct AdminData {
+    pub token: String,
+    pub invites: HashSet<Invite>,
+    pub page: AdminPage,
 }
 
 impl User {
@@ -32,7 +41,11 @@ impl User {
                 task,
                 page: url.into(),
             }),
-            SavedUser::Admin(token) => User::Admin(token),
+            SavedUser::Admin(token, invites) => User::Admin(AdminData {
+                token,
+                invites: invites.into_iter().collect(),
+                page: url.into(),
+            }),
             SavedUser::Tutor(token) => User::Tutor(token),
         }
     }
@@ -45,7 +58,7 @@ impl User {
         match self {
             User::Guest(data) => data.0 = url.into(),
             User::RequestedGuest(data) => data.page = url.into(),
-            User::Admin(_) => todo!(),
+            User::Admin(data) => data.page = url.into(),
             User::Tutor(_) => todo!(),
         }
     }
@@ -54,7 +67,7 @@ impl User {
         match self {
             User::Guest(data) => &data.0,
             User::RequestedGuest(data) => &data.page,
-            User::Admin(_) => todo!(),
+            User::Admin(data) => &data.page,
             User::Tutor(_) => todo!(),
         }
     }
@@ -63,19 +76,26 @@ impl User {
         match self {
             User::Guest(data) => &mut data.0,
             User::RequestedGuest(data) => &mut data.page,
-            User::Admin(_) => todo!(),
+            User::Admin(data) => &mut data.page,
             User::Tutor(_) => todo!(),
         }
     }
     pub fn get_token(&self) -> Option<&String> {
         match self {
-            User::Admin(token) | User::Tutor(token) => Some(token),
+            User::Tutor(token) => Some(token),
+            User::Admin(data) => Some(&data.token),
             _ => None,
         }
     }
 
     pub fn as_guest<F: FnOnce(&mut GuestData)>(&mut self, func: F) {
         if let User::Guest(data) = self {
+            func(data)
+        }
+    }
+
+    pub fn as_admin<F: FnOnce(&mut AdminData)>(&mut self, func: F) {
+        if let User::Admin(data) = self {
             func(data)
         }
     }
@@ -113,6 +133,16 @@ impl RequestedGuestData {
     }
 }
 
+impl AdminData {
+    pub fn add_invite(&mut self, invite: Invite) {
+        self.invites.insert(invite);
+    }
+
+    pub fn remove_invite(&mut self, invite: &Invite) {
+        self.invites.remove(invite);
+    }
+}
+
 // This enum is used to store the relevant data
 // of the user in the local storage
 // It is used to reconstruct the user
@@ -120,7 +150,7 @@ impl RequestedGuestData {
 enum SavedUser {
     Guest,
     RequestedGuest(Task),
-    Admin(String),
+    Admin(String, Vec<Invite>),
     Tutor(String),
 }
 
@@ -133,7 +163,10 @@ impl SavedUser {
         let saved_user = match user {
             User::Guest(_) => SavedUser::Guest,
             User::RequestedGuest(data) => SavedUser::RequestedGuest(data.task.clone()),
-            User::Admin(token) => SavedUser::Admin(token.clone()),
+            User::Admin(data) => SavedUser::Admin(
+                data.token.clone(),
+                data.invites.clone().into_iter().collect(),
+            ),
             User::Tutor(token) => SavedUser::Tutor(token.clone()),
         };
 

@@ -1,9 +1,13 @@
+use std::collections::HashSet;
+
 use seed::prelude::*;
 use serde_json::Value;
 
 use crate::{
     api::{
+        admin::{create_invite, delete_invite, Invite},
         auth::{log_out, login, register, RegisterPayload, Token},
+        refresh::refresh_admin,
         task::{get_task, resolve_task, submit_task, update_task, Task},
         user::ApiUser,
         ApiResult,
@@ -26,7 +30,7 @@ impl ApiMsg {
                     .skip()
                     .perform_cmd(async move { request.make_request().await });
             }
-            ApiMsg::Response(response) => response.update(model),
+            ApiMsg::Response(response) => response.update(model, orders),
         }
     }
 }
@@ -39,10 +43,13 @@ pub enum RequestApiMsg {
         title: String,
         description: String,
     },
+    CreateInvite(String),
+    DeleteInvite(String, Invite),
     Login(String, String),
     Register(RegisterPayload),
     Logout(String),
     RefreshRequestedGuest(String),
+    RefreshAdmin(String),
 }
 
 impl RequestApiMsg {
@@ -69,6 +76,15 @@ impl RequestApiMsg {
             RequestApiMsg::RefreshRequestedGuest(task_id) => get_task(&task_id)
                 .await
                 .map(ResponseApiMsg::RefreshRequestedGuest),
+            RequestApiMsg::RefreshAdmin(token) => {
+                refresh_admin(token).await.map(ResponseApiMsg::RefreshAdmin)
+            }
+            RequestApiMsg::CreateInvite(token) => create_invite(&token)
+                .await
+                .map(ResponseApiMsg::CreateInvite),
+            RequestApiMsg::DeleteInvite(token, invite) => delete_invite(&token, invite)
+                .await
+                .map(ResponseApiMsg::DeleteInvite),
         };
 
         match result {
@@ -82,13 +98,16 @@ pub enum ResponseApiMsg {
     Submit(ApiResult<Task>),
     Resolve(ApiResult<Task>),
     Edit(ApiResult<Task>),
+    CreateInvite(ApiResult<Invite>),
+    DeleteInvite(ApiResult<Invite>),
     Login(ApiResult<(Token, ApiUser)>),
     Logout(ApiResult<Value>),
     RefreshRequestedGuest(ApiResult<Task>),
+    RefreshAdmin(ApiResult<(String, Vec<Invite>)>),
 }
 
 impl ResponseApiMsg {
-    pub fn update(self, model: &mut Model) {
+    pub fn update(self, model: &mut Model, orders: &mut impl Orders<Msg>) {
         let res = match self {
             ResponseApiMsg::Submit(task) => task.map(|task| model.switch_to_requested_user(task)),
             ResponseApiMsg::Resolve(res) => res.map(|_| model.switch_to_guest()),
@@ -101,10 +120,11 @@ impl ResponseApiMsg {
             }),
             ResponseApiMsg::Login(res) => res.map(|(token, user)| {
                 if &user.user_type == "admin" {
-                    model.switch_to_admin(token.token)
+                    model.switch_to_admin(token.token, HashSet::new())
                 } else {
                     model.switch_to_tutor(token.token)
                 }
+                orders.send_msg(Msg::Refresh);
             }),
             ResponseApiMsg::Logout(res) => res.map(|_| model.switch_to_guest()),
             ResponseApiMsg::RefreshRequestedGuest(res) => res.map(|task| {
@@ -114,6 +134,15 @@ impl ResponseApiMsg {
                     model.switch_to_requested_user(task)
                 }
             }),
+            ResponseApiMsg::RefreshAdmin(res) => res.map(|(token, invites)| {
+                model.switch_to_admin(token, invites.into_iter().collect())
+            }),
+            ResponseApiMsg::CreateInvite(res) => {
+                res.map(|invite| model.user.as_admin(|admin| admin.add_invite(invite)))
+            }
+            ResponseApiMsg::DeleteInvite(res) => {
+                res.map(|invite| model.user.as_admin(|admin| admin.remove_invite(&invite)))
+            }
         };
 
         if let ApiResult::Err(err) = res {

@@ -2,6 +2,7 @@ use seed::prelude::*;
 
 use self::{login::LoginPageData, register::RegisterPageData};
 
+pub mod admin;
 pub mod guest;
 pub mod login;
 pub mod register;

@@ -1,10 +1,15 @@
+use std::collections::HashSet;
+
 use seed::prelude::*;
 
 use self::{
     page::Urls,
-    user::{GuestData, RequestedGuestData, User},
+    user::{AdminData, GuestData, RequestedGuestData, User},
 };
-use crate::{api::task::Task, msg::Msg};
+use crate::{
+    api::{admin::Invite, task::Task},
+    msg::Msg,
+};
 
 pub mod page;
 pub mod user;
@@ -58,8 +63,12 @@ impl Model {
         self.user = User::Guest(GuestData(self.urls.base_url.clone().into()))
     }
 
-    pub fn switch_to_admin(&mut self, token: String) {
-        self.user = User::Admin(token)
+    pub fn switch_to_admin(&mut self, token: String, invites: HashSet<Invite>) {
+        self.user = User::Admin(AdminData {
+            token,
+            invites,
+            page: self.urls.base_url.clone().into(),
+        })
     }
 
     pub fn switch_to_tutor(&mut self, token: String) {
