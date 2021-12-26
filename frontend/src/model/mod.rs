@@ -16,15 +16,21 @@ pub struct Model {
 }
 
 #[derive(Clone)]
-struct NotifyToken;
+struct ChangeUrlToken;
+
+#[derive(Clone)]
+pub struct RefreshToken;
 
 impl Model {
     pub fn init(url: Url, orders: &mut impl Orders<Msg>) -> Self {
         orders
             .subscribe(Msg::UrlChanged)
             .subscribe(|_: subs::UrlChanged| Msg::RedirectIfNotFound)
-            .subscribe(|_: NotifyToken| Msg::RedirectIfNotFound)
-            .notify(NotifyToken);
+            .subscribe(|_: ChangeUrlToken| Msg::RedirectIfNotFound)
+            .subscribe(|_: RefreshToken| Msg::Refresh)
+            .stream(streams::interval(30_000, || Msg::Refresh))
+            .notify(RefreshToken)
+            .notify(ChangeUrlToken);
 
         Model {
             expanded_menu: false,

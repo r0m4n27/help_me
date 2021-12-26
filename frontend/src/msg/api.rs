@@ -4,7 +4,7 @@ use serde_json::Value;
 use crate::{
     api::{
         auth::{log_out, login, register, RegisterPayload, Token},
-        task::{resolve_task, submit_task, update_task, Task},
+        task::{get_task, resolve_task, submit_task, update_task, Task},
         user::ApiUser,
         ApiResult,
     },
@@ -42,6 +42,7 @@ pub enum RequestApiMsg {
     Login(String, String),
     Register(RegisterPayload),
     Logout(String),
+    RefreshRequestedGuest(String),
 }
 
 impl RequestApiMsg {
@@ -65,6 +66,9 @@ impl RequestApiMsg {
                 .map(ResponseApiMsg::Login),
             RequestApiMsg::Register(payload) => register(&payload).await.map(ResponseApiMsg::Login),
             RequestApiMsg::Logout(token) => log_out(&token).await.map(ResponseApiMsg::Logout),
+            RequestApiMsg::RefreshRequestedGuest(task_id) => get_task(&task_id)
+                .await
+                .map(ResponseApiMsg::RefreshRequestedGuest),
         };
 
         match result {
@@ -80,6 +84,7 @@ pub enum ResponseApiMsg {
     Edit(ApiResult<Task>),
     Login(ApiResult<(Token, ApiUser)>),
     Logout(ApiResult<Value>),
+    RefreshRequestedGuest(ApiResult<Task>),
 }
 
 impl ResponseApiMsg {
@@ -87,9 +92,13 @@ impl ResponseApiMsg {
         let res = match self {
             ResponseApiMsg::Submit(task) => task.map(|task| model.switch_to_requested_user(task)),
             ResponseApiMsg::Resolve(res) => res.map(|_| model.switch_to_guest()),
-            ResponseApiMsg::Edit(res) => {
-                res.map(|task| model.user.as_requested_guest(|data| data.update_task(task)))
-            }
+            ResponseApiMsg::Edit(res) => res.map(|task| {
+                if task.state == "done" {
+                    model.switch_to_guest()
+                } else {
+                    model.user.as_requested_guest(|data| data.update_task(task))
+                }
+            }),
             ResponseApiMsg::Login(res) => res.map(|(token, user)| {
                 if &user.user_type == "admin" {
                     model.switch_to_admin(token.token)
@@ -98,6 +107,13 @@ impl ResponseApiMsg {
                 }
             }),
             ResponseApiMsg::Logout(res) => res.map(|_| model.switch_to_guest()),
+            ResponseApiMsg::RefreshRequestedGuest(res) => res.map(|task| {
+                if task.state == "done" {
+                    model.switch_to_guest()
+                } else {
+                    model.switch_to_requested_user(task)
+                }
+            }),
         };
 
         if let ApiResult::Err(err) = res {

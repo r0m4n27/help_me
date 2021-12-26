@@ -2,8 +2,11 @@ use core::fmt;
 
 use seed::prelude::*;
 
-use self::{api::ApiMsg, page::PageMsg};
-use crate::model::Model;
+use self::{
+    api::{ApiMsg, RequestApiMsg},
+    page::PageMsg,
+};
+use crate::model::{user::User, Model};
 
 pub mod api;
 pub mod page;
@@ -12,6 +15,7 @@ pub enum Msg {
     ChangeMenu,
     UrlChanged(subs::UrlChanged),
     RedirectIfNotFound,
+    Refresh,
     Api(ApiMsg),
     Page(PageMsg),
 }
@@ -30,6 +34,14 @@ impl Msg {
                 } else {
                     orders.skip();
                 }
+            }
+            Msg::Refresh => {
+                if let User::RequestedGuest(data) = &model.user {
+                    orders.send_msg(Msg::Api(ApiMsg::Request(
+                        RequestApiMsg::RefreshRequestedGuest(data.task.id.clone()),
+                    )));
+                };
+                orders.skip();
             }
         }
 
