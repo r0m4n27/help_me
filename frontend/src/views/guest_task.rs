@@ -5,7 +5,7 @@ use seed::prelude::{
 
 use crate::{
     api::task::Task,
-    model::page::RequestedGuestIndexData,
+    model::page::requested_guest::RequestedGuestIndexData,
     msg::{page::PageMsg, Msg},
 };
 
@@ -16,10 +16,11 @@ use super::{
 
 pub fn guest_task_view(task: &Task, page_data: &RequestedGuestIndexData) -> Node<Msg> {
     match page_data {
-        RequestedGuestIndexData::Viewing => guest_task_default_view(task),
+        RequestedGuestIndexData::Viewing { .. } => guest_task_default_view(task),
         RequestedGuestIndexData::Editing {
             title_ref,
             description_ref,
+            ..
         } => guest_task_edit_view(task, title_ref, description_ref),
     }
 }

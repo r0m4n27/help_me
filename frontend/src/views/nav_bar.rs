@@ -61,7 +61,7 @@ fn nav_bar_items(model: &Model) -> Node<Msg> {
     // TODO: Log Out
     // a![C!["button", "is-danger"], "Log Out"],
     let button = match model.user {
-        User::Guest(_) | User::RequestedGuest(_, _) => a![
+        User::Guest(_) | User::RequestedGuest(_) => a![
             C!["button", "is-primary"],
             "Log In",
             attrs! {

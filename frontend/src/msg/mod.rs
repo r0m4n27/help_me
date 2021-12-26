@@ -24,12 +24,9 @@ impl Msg {
             Msg::Api(msg) => msg.update(model, orders),
             Msg::Page(msg) => msg.update(model, orders),
             Msg::RedirectIfNotFound => {
-                let should_redirect = model
-                    .user
-                    .redirect_if_not_found(model.urls.base_url.clone());
-
-                if should_redirect {
+                if model.user.page().is_not_found() {
                     model.urls.goto_index();
+                    model.user.change_page(model.urls.base_url.clone())
                 } else {
                     orders.skip();
                 }

@@ -1,8 +1,8 @@
 use seed::prelude::*;
 
 use self::{
-    page::{GuestPages, RequestedGuestPages, Urls},
-    user::User,
+    page::Urls,
+    user::{GuestData, RequestedGuestData, User},
 };
 use crate::{api::task::Task, msg::Msg};
 
@@ -42,12 +42,13 @@ impl Model {
     }
 
     pub fn switch_to_requested_user(&mut self, task: Task) {
-        let pages = RequestedGuestPages::new(self.urls.base_url.clone());
-        self.user = User::RequestedGuest(task, pages)
+        self.user = User::RequestedGuest(RequestedGuestData {
+            task,
+            page: self.urls.base_url.clone().into(),
+        })
     }
 
     pub fn switch_to_guest(&mut self) {
-        let pages = GuestPages::new(self.urls.base_url.clone());
-        self.user = User::Guest(pages)
+        self.user = User::Guest(GuestData(self.urls.base_url.clone().into()))
     }
 }

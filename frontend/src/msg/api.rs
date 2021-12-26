@@ -1,5 +1,4 @@
 use seed::prelude::*;
-use serde_json::Value;
 
 use crate::{
     api::{
@@ -42,13 +41,19 @@ pub enum RequestApiMsg {
 impl RequestApiMsg {
     pub async fn make_request(self) -> Option<Msg> {
         let result = match self {
-            RequestApiMsg::Submit(title, description) => submit_task(&title, &description).await,
-            RequestApiMsg::Resolve(task_id) => resolve_task(&task_id).await,
+            RequestApiMsg::Submit(title, description) => submit_task(&title, &description)
+                .await
+                .map(ResponseApiMsg::Submit),
+            RequestApiMsg::Resolve(task_id) => {
+                resolve_task(&task_id).await.map(ResponseApiMsg::Resolve)
+            }
             RequestApiMsg::Edit {
                 task_id,
                 title,
                 description,
-            } => update_task(&task_id, &title, &description).await,
+            } => update_task(&task_id, &title, &description)
+                .await
+                .map(ResponseApiMsg::Edit),
         };
 
         match result {
@@ -60,7 +65,7 @@ impl RequestApiMsg {
 
 pub enum ResponseApiMsg {
     Submit(ApiResult<Task>),
-    Resolve(ApiResult<Value>),
+    Resolve(ApiResult<Task>),
     Edit(ApiResult<Task>),
 }
 
@@ -69,11 +74,13 @@ impl ResponseApiMsg {
         let res = match self {
             ResponseApiMsg::Submit(task) => task.map(|task| model.switch_to_requested_user(task)),
             ResponseApiMsg::Resolve(res) => res.map(|_| model.switch_to_guest()),
-            ResponseApiMsg::Edit(res) => res.map(|task| model.user.update_task(task)),
+            ResponseApiMsg::Edit(res) => {
+                res.map(|task| model.user.as_requested_guest(|data| data.update_task(task)))
+            }
         };
 
         if let ApiResult::Err(err) = res {
-            model.user.update_error(err.message)
+            model.user.page_mut().set_error_message(err.message)
         }
     }
 }

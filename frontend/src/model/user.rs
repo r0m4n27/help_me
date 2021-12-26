@@ -3,11 +3,97 @@ use serde::{Deserialize, Serialize};
 
 use crate::api::task::Task;
 
-use super::page::{GuestPages, Page, RequestedGuestIndexData, RequestedGuestPages};
+use super::page::{
+    guest::GuestPage,
+    requested_guest::{RequestedGuestIndexData, RequestedGuestPage},
+    Page,
+};
 
 pub enum User {
-    Guest(GuestPages),
-    RequestedGuest(Task, RequestedGuestPages),
+    Guest(GuestData),
+    RequestedGuest(RequestedGuestData),
+}
+
+pub struct GuestData(pub GuestPage);
+pub struct RequestedGuestData {
+    pub task: Task,
+    pub page: RequestedGuestPage,
+}
+
+impl User {
+    pub fn init(url: Url) -> Self {
+        let saved_user = SavedUser::init();
+
+        match saved_user {
+            SavedUser::Guest => User::Guest(GuestData(url.into())),
+            SavedUser::RequestedGuest(task) => User::RequestedGuest(RequestedGuestData {
+                task,
+                page: url.into(),
+            }),
+        }
+    }
+
+    pub fn save(&self) {
+        SavedUser::save(self)
+    }
+
+    pub fn change_page(&mut self, url: Url) {
+        match self {
+            User::Guest(data) => data.0 = url.into(),
+            User::RequestedGuest(data) => data.page = url.into(),
+        }
+    }
+
+    pub fn page(&self) -> &dyn Page {
+        match self {
+            User::Guest(data) => &data.0,
+            User::RequestedGuest(data) => &data.page,
+        }
+    }
+
+    pub fn page_mut(&mut self) -> &mut dyn Page {
+        match self {
+            User::Guest(data) => &mut data.0,
+            User::RequestedGuest(data) => &mut data.page,
+        }
+    }
+
+    pub fn as_guest<F: FnOnce(&mut GuestData)>(&mut self, func: F) {
+        if let User::Guest(data) = self {
+            func(data)
+        }
+    }
+    pub fn as_requested_guest<F: FnOnce(&mut RequestedGuestData)>(&mut self, func: F) {
+        if let User::RequestedGuest(data) = self {
+            func(data)
+        }
+    }
+}
+
+impl RequestedGuestData {
+    pub fn start_editing(&mut self) {
+        if let RequestedGuestPage::Index(data) = &mut self.page {
+            *data = RequestedGuestIndexData::Editing {
+                title_ref: ElRef::new(),
+                description_ref: ElRef::new(),
+                error: None,
+            }
+        }
+    }
+
+    pub fn cancel_editing(&mut self) {
+        if let RequestedGuestPage::Index(data) = &mut self.page {
+            *data = RequestedGuestIndexData::Viewing { error: None }
+        }
+    }
+
+    pub fn update_task(&mut self, new_task: Task) {
+        self.task = new_task;
+
+        if let RequestedGuestPage::Index(data) = &mut self.page {
+            *data = RequestedGuestIndexData::Viewing { error: None }
+        }
+    }
 }
 
 // This enum is used to store the relevant data
@@ -19,87 +105,22 @@ enum SavedUser {
     RequestedGuest(Task),
 }
 
-impl User {
-    pub fn init(url: Url) -> Self {
-        let saved_user = LocalStorage::get(User::storage_key()).unwrap_or(SavedUser::Guest);
-
-        match saved_user {
-            SavedUser::Guest => User::Guest(GuestPages::new(url)),
-            SavedUser::RequestedGuest(task) => {
-                let pages = RequestedGuestPages::new(url);
-                User::RequestedGuest(task, pages)
-            }
-        }
+impl SavedUser {
+    fn init() -> Self {
+        LocalStorage::get(Self::storage_key()).unwrap_or(SavedUser::Guest)
     }
 
-    pub fn save(&self) {
-        let saved_user = match self {
+    fn save(user: &User) {
+        let saved_user = match user {
             User::Guest(_) => SavedUser::Guest,
-            User::RequestedGuest(task, _) => SavedUser::RequestedGuest(task.clone()),
+            User::RequestedGuest(data) => SavedUser::RequestedGuest(data.task.clone()),
         };
 
-        // Webstorage error can't be converted to an anyhow error
-        LocalStorage::insert(User::storage_key(), &saved_user).expect("Can't save User")
-    }
-
-    pub fn change_page(&mut self, url: Url) {
-        match self {
-            User::Guest(old_pages) => *old_pages = GuestPages::new(url),
-            User::RequestedGuest(_, old_pages) => *old_pages = RequestedGuestPages::new(url),
-        }
-    }
-
-    pub fn update_error(&mut self, error: String) {
-        match self {
-            User::Guest(page) => page.set_error_message(error),
-            User::RequestedGuest(_, page) => page.set_error_message(error),
-        }
-    }
-
-    pub fn error_message(&self) -> Option<&String> {
-        match self {
-            User::Guest(page) => page.error_message(),
-            User::RequestedGuest(_, page) => page.error_message(),
-        }
-    }
-
-    pub fn redirect_if_not_found(&mut self, url: Url) -> bool {
-        let should_redirect = match self {
-            User::Guest(pages) => pages.not_found(),
-            User::RequestedGuest(_, pages) => pages.not_found(),
-        };
-
-        if should_redirect {
-            self.change_page(url)
-        }
-
-        should_redirect
-    }
-
-    pub fn edit_task(&mut self) {
-        if let User::RequestedGuest(_, RequestedGuestPages::Index { page_data, .. }) = self {
-            *page_data = RequestedGuestIndexData::Editing {
-                title_ref: ElRef::new(),
-                description_ref: ElRef::new(),
-            }
-        }
-    }
-
-    pub fn cancel_edit_task(&mut self) {
-        if let User::RequestedGuest(_, RequestedGuestPages::Index { page_data, .. }) = self {
-            *page_data = RequestedGuestIndexData::Viewing
-        }
-    }
-
-    pub fn update_task(&mut self, new_task: Task) {
-        if let User::RequestedGuest(task, RequestedGuestPages::Index { page_data, .. }) = self {
-            *task = new_task;
-            *page_data = RequestedGuestIndexData::Viewing
-        }
+        LocalStorage::insert(Self::storage_key(), &saved_user).expect("Can't save User")
     }
 
     #[inline]
-    fn storage_key() -> &'static str {
+    const fn storage_key() -> &'static str {
         "USER"
     }
 }

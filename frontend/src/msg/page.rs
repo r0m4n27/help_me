@@ -1,8 +1,10 @@
 use seed::prelude::*;
 
 use crate::model::{
-    page::{GuestPages, RequestedGuestIndexData, RequestedGuestPages},
-    user::User,
+    page::{
+        guest::GuestPage,
+        requested_guest::{RequestedGuestIndexData, RequestedGuestPage},
+    },
     Model,
 };
 
@@ -17,20 +19,21 @@ pub enum PageMsg {
     Resolve,
     CancelEdit,
     ConfirmEdit,
+    Login,
 }
 
 impl PageMsg {
     pub fn update(self, model: &mut Model, orders: &mut impl Orders<Msg>) {
         match self {
-            PageMsg::Submit => {
-                if let User::Guest(GuestPages::Index {
-                    title_ref,
-                    description_ref,
-                    ..
-                }) = &model.user
-                {
-                    let title = title_ref.get().expect("Title not initialised!").value();
-                    let description = description_ref
+            PageMsg::Submit => model.user.as_guest(|data| {
+                if let GuestPage::Index(index_data) = &data.0 {
+                    let title = index_data
+                        .title_ref
+                        .get()
+                        .expect("Title not initialised!")
+                        .value();
+                    let description = index_data
+                        .description_ref
                         .get()
                         .expect("Description not initialised")
                         .value();
@@ -39,28 +42,20 @@ impl PageMsg {
                         description,
                     ))));
                 }
-            }
-            PageMsg::Edit => model.user.edit_task(),
-            PageMsg::Resolve => {
-                if let User::RequestedGuest(task, _) = &model.user {
-                    orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Resolve(
-                        task.id.clone(),
-                    ))));
-                }
-            }
-            PageMsg::CancelEdit => model.user.cancel_edit_task(),
-            PageMsg::ConfirmEdit => {
-                if let User::RequestedGuest(
-                    task,
-                    RequestedGuestPages::Index {
-                        page_data:
-                            RequestedGuestIndexData::Editing {
-                                title_ref,
-                                description_ref,
-                            },
-                        ..
-                    },
-                ) = &model.user
+            }),
+            PageMsg::Edit => model.user.as_requested_guest(|data| data.start_editing()),
+            PageMsg::Resolve => model.user.as_requested_guest(|data| {
+                orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Resolve(
+                    data.task.id.clone(),
+                ))));
+            }),
+            PageMsg::CancelEdit => model.user.as_requested_guest(|data| data.cancel_editing()),
+            PageMsg::ConfirmEdit => model.user.as_requested_guest(|data| {
+                if let RequestedGuestPage::Index(RequestedGuestIndexData::Editing {
+                    title_ref,
+                    description_ref,
+                    ..
+                }) = &data.page
                 {
                     let title = title_ref.get().expect("Title not initialised!").value();
                     let description = description_ref
@@ -69,12 +64,13 @@ impl PageMsg {
                         .value();
 
                     orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Edit {
-                        task_id: task.id.clone(),
+                        task_id: data.task.id.clone(),
                         title,
                         description,
                     })));
                 }
-            }
+            }),
+            PageMsg::Login => todo!(),
         }
     }
 }

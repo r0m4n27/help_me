@@ -4,7 +4,7 @@ use seed::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::msg::api::ResponseApiMsg;
+use super::ApiResult;
 
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct Task {
@@ -14,7 +14,7 @@ pub struct Task {
     pub state: String,
 }
 
-pub async fn submit_task(title: &str, description: &str) -> Result<ResponseApiMsg> {
+pub async fn submit_task(title: &str, description: &str) -> Result<ApiResult<Task>> {
     let payload = json!({
         "title": title,
         "body": description
@@ -28,10 +28,10 @@ pub async fn submit_task(title: &str, description: &str) -> Result<ResponseApiMs
         .json()
         .await?;
 
-    Ok(ResponseApiMsg::Submit(response))
+    Ok(response)
 }
 
-pub async fn resolve_task(task_id: &str) -> Result<ResponseApiMsg> {
+pub async fn resolve_task(task_id: &str) -> Result<ApiResult<Task>> {
     let response = Request::new(&format!("/api/tasks/{}/resolve", task_id))
         .method(Method::Post)
         .fetch()
@@ -39,10 +39,10 @@ pub async fn resolve_task(task_id: &str) -> Result<ResponseApiMsg> {
         .json()
         .await?;
 
-    Ok(ResponseApiMsg::Resolve(response))
+    Ok(response)
 }
 
-pub async fn update_task(task_id: &str, title: &str, description: &str) -> Result<ResponseApiMsg> {
+pub async fn update_task(task_id: &str, title: &str, description: &str) -> Result<ApiResult<Task>> {
     let payload = json!({
         "title": title,
         "body": description
@@ -56,7 +56,7 @@ pub async fn update_task(task_id: &str, title: &str, description: &str) -> Resul
         .json()
         .await?;
 
-    Ok(ResponseApiMsg::Edit(response))
+    Ok(response)
 }
 
 // pub async fn process_task(token: &str, task_id: &str) -> Result<ApiResult<Value>> {

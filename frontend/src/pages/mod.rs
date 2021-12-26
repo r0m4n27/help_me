@@ -13,8 +13,8 @@ mod requested_guest;
 
 pub fn page_view(model: &Model) -> Node<Msg> {
     match &model.user {
-        User::Guest(pages) => guest_view(pages, model),
-        User::RequestedGuest(task, pages) => requested_guest_view(task, pages, model),
+        User::Guest(data) => guest_view(&data.0, model),
+        User::RequestedGuest(data) => requested_guest_view(&data.task, &data.page, model),
     }
 }
 
@@ -30,7 +30,7 @@ fn hero_view(content: Node<Msg>, model: &Model) -> Node<Msg> {
 }
 
 fn error_message_view(model: &Model) -> Node<Msg> {
-    match model.user.error_message() {
+    match model.user.page().error_message() {
         Some(err) => div![C!["notification", "is-danger"], err],
         None => div![],
     }
