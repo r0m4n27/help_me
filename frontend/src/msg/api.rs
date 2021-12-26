@@ -1,8 +1,9 @@
 use seed::prelude::*;
+use serde_json::Value;
 
 use crate::{
     api::{
-        auth::{login, register, RegisterPayload, Token},
+        auth::{log_out, login, register, RegisterPayload, Token},
         task::{resolve_task, submit_task, update_task, Task},
         user::ApiUser,
         ApiResult,
@@ -40,6 +41,7 @@ pub enum RequestApiMsg {
     },
     Login(String, String),
     Register(RegisterPayload),
+    Logout(String),
 }
 
 impl RequestApiMsg {
@@ -62,6 +64,7 @@ impl RequestApiMsg {
                 .await
                 .map(ResponseApiMsg::Login),
             RequestApiMsg::Register(payload) => register(&payload).await.map(ResponseApiMsg::Login),
+            RequestApiMsg::Logout(token) => log_out(&token).await.map(ResponseApiMsg::Logout),
         };
 
         match result {
@@ -76,6 +79,7 @@ pub enum ResponseApiMsg {
     Resolve(ApiResult<Task>),
     Edit(ApiResult<Task>),
     Login(ApiResult<(Token, ApiUser)>),
+    Logout(ApiResult<Value>),
 }
 
 impl ResponseApiMsg {
@@ -93,6 +97,7 @@ impl ResponseApiMsg {
                     model.switch_to_tutor(token.token)
                 }
             }),
+            ResponseApiMsg::Logout(res) => res.map(|_| model.switch_to_guest()),
         };
 
         if let ApiResult::Err(err) = res {

@@ -12,8 +12,8 @@ use super::page::{
 pub enum User {
     Guest(GuestData),
     RequestedGuest(RequestedGuestData),
-    Admin,
-    Tutor,
+    Admin(String),
+    Tutor(String),
 }
 
 pub struct GuestData(pub GuestPage);
@@ -32,8 +32,8 @@ impl User {
                 task,
                 page: url.into(),
             }),
-            SavedUser::Admin => User::Admin,
-            SavedUser::Tutor => User::Tutor,
+            SavedUser::Admin(token) => User::Admin(token),
+            SavedUser::Tutor(token) => User::Tutor(token),
         }
     }
 
@@ -45,8 +45,8 @@ impl User {
         match self {
             User::Guest(data) => data.0 = url.into(),
             User::RequestedGuest(data) => data.page = url.into(),
-            User::Admin => todo!(),
-            User::Tutor => todo!(),
+            User::Admin(_) => todo!(),
+            User::Tutor(_) => todo!(),
         }
     }
 
@@ -54,8 +54,8 @@ impl User {
         match self {
             User::Guest(data) => &data.0,
             User::RequestedGuest(data) => &data.page,
-            User::Admin => todo!(),
-            User::Tutor => todo!(),
+            User::Admin(_) => todo!(),
+            User::Tutor(_) => todo!(),
         }
     }
 
@@ -63,8 +63,14 @@ impl User {
         match self {
             User::Guest(data) => &mut data.0,
             User::RequestedGuest(data) => &mut data.page,
-            User::Admin => todo!(),
-            User::Tutor => todo!(),
+            User::Admin(_) => todo!(),
+            User::Tutor(_) => todo!(),
+        }
+    }
+    pub fn get_token(&self) -> Option<&String> {
+        match self {
+            User::Admin(token) | User::Tutor(token) => Some(token),
+            _ => None,
         }
     }
 
@@ -73,6 +79,7 @@ impl User {
             func(data)
         }
     }
+
     pub fn as_requested_guest<F: FnOnce(&mut RequestedGuestData)>(&mut self, func: F) {
         if let User::RequestedGuest(data) = self {
             func(data)
@@ -113,8 +120,8 @@ impl RequestedGuestData {
 enum SavedUser {
     Guest,
     RequestedGuest(Task),
-    Admin,
-    Tutor,
+    Admin(String),
+    Tutor(String),
 }
 
 impl SavedUser {
@@ -126,8 +133,8 @@ impl SavedUser {
         let saved_user = match user {
             User::Guest(_) => SavedUser::Guest,
             User::RequestedGuest(data) => SavedUser::RequestedGuest(data.task.clone()),
-            User::Admin => SavedUser::Admin,
-            User::Tutor => SavedUser::Tutor,
+            User::Admin(token) => SavedUser::Admin(token.clone()),
+            User::Tutor(token) => SavedUser::Tutor(token.clone()),
         };
 
         LocalStorage::insert(Self::storage_key(), &saved_user).expect("Can't save User")

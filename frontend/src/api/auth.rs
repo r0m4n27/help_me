@@ -1,11 +1,11 @@
 use seed::fetch::Result;
 use seed::prelude::*;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::{json, Value};
 
 use super::{
     user::{get_user, ApiUser},
-    ApiResult,
+    ApiResult, BearerRequest,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -75,14 +75,14 @@ pub async fn register(payload: &RegisterPayload) -> Result<ApiResult<(Token, Api
     }
 }
 
-// pub async fn log_out(token: &str) -> Result<ApiResult<Value>> {
-//     let response = Request::new("/api/auth/logout")
-//         .method(Method::Post)
-//         .bearer(token)
-//         .fetch()
-//         .await?
-//         .json()
-//         .await?;
+pub async fn log_out(token: &str) -> Result<ApiResult<Value>> {
+    let response = Request::new("/api/auth/logout")
+        .method(Method::Post)
+        .bearer(token)
+        .fetch()
+        .await?
+        .json()
+        .await?;
 
-//     Ok(response)
-// }
+    Ok(response)
+}

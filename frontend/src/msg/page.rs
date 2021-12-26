@@ -24,6 +24,7 @@ pub enum PageMsg {
     ConfirmEdit,
     Login,
     Register,
+    Logout,
 }
 
 impl PageMsg {
@@ -36,15 +37,19 @@ impl PageMsg {
                         .get()
                         .expect("Title not initialised!")
                         .value();
+
                     let description = index_data
                         .description_ref
                         .get()
                         .expect("Description not initialised")
                         .value();
-                    orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Submit(
-                        title,
-                        description,
-                    ))));
+
+                    orders
+                        .skip()
+                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Submit(
+                            title,
+                            description,
+                        ))));
                 }
             }),
             PageMsg::Edit => model.user.as_requested_guest(|data| data.start_editing()),
@@ -67,11 +72,13 @@ impl PageMsg {
                         .expect("Description not initialised")
                         .value();
 
-                    orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Edit {
-                        task_id: data.task.id.clone(),
-                        title,
-                        description,
-                    })));
+                    orders
+                        .skip()
+                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Edit {
+                            task_id: data.task.id.clone(),
+                            title,
+                            description,
+                        })));
                 }
             }),
             PageMsg::Login => {
@@ -87,9 +94,11 @@ impl PageMsg {
                         .expect("User name not initialised!")
                         .value();
 
-                    orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Login(
-                        user_name, password,
-                    ))));
+                    orders
+                        .skip()
+                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Login(
+                            user_name, password,
+                        ))));
                 }
             }
             PageMsg::Register => {
@@ -111,9 +120,20 @@ impl PageMsg {
                         .expect("Invite code not initialised!")
                         .value();
 
-                    orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Register(
-                        RegisterPayload::new(user_name, password, invite_code),
-                    ))));
+                    orders
+                        .skip()
+                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Register(
+                            RegisterPayload::new(user_name, password, invite_code),
+                        ))));
+                }
+            }
+            PageMsg::Logout => {
+                if let Some(token) = model.user.get_token() {
+                    orders
+                        .skip()
+                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Logout(
+                            token.clone(),
+                        ))));
                 }
             }
         }

@@ -52,11 +52,11 @@ impl Model {
         self.user = User::Guest(GuestData(self.urls.base_url.clone().into()))
     }
 
-    pub fn switch_to_admin(&mut self, _: String) {
-        self.user = User::Admin
+    pub fn switch_to_admin(&mut self, token: String) {
+        self.user = User::Admin(token)
     }
 
-    pub fn switch_to_tutor(&mut self, _: String) {
-        self.user = User::Tutor
+    pub fn switch_to_tutor(&mut self, token: String) {
+        self.user = User::Tutor(token)
     }
 }
