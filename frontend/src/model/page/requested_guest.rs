@@ -3,11 +3,12 @@ use seed::prelude::{
     *,
 };
 
-use super::{login::LoginPageData, Page, LOGIN_PART};
+use super::{login::LoginPageData, register::RegisterPageData, Page, LOGIN_PART, REGISTER_PART};
 
 pub enum RequestedGuestPage {
     Index(RequestedGuestIndexData),
     Login(LoginPageData),
+    Register(RegisterPageData),
     NotFound,
 }
 
@@ -16,6 +17,7 @@ impl From<Url> for RequestedGuestPage {
         match url.remaining_path_parts().as_slice() {
             [] => RequestedGuestPage::Index(RequestedGuestIndexData::Viewing { error: None }),
             [LOGIN_PART] => RequestedGuestPage::Login(LoginPageData::new()),
+            [REGISTER_PART] => RequestedGuestPage::Register(RegisterPageData::new()),
             _ => RequestedGuestPage::NotFound,
         }
     }
@@ -32,6 +34,7 @@ impl Page for RequestedGuestPage {
             }
             RequestedGuestPage::Login(data) => data.error = Some(error),
             RequestedGuestPage::NotFound => {}
+            RequestedGuestPage::Register(data) => data.error = Some(error),
         }
     }
 
@@ -45,6 +48,7 @@ impl Page for RequestedGuestPage {
             }
             RequestedGuestPage::Login(data) => data.error.as_ref(),
             RequestedGuestPage::NotFound => None,
+            RequestedGuestPage::Register(data) => data.error.as_ref(),
         }
     }
 
@@ -53,10 +57,18 @@ impl Page for RequestedGuestPage {
     }
 
     fn login_data(&self) -> Option<&LoginPageData> {
-        match self {
-            RequestedGuestPage::Index(_) => None,
-            RequestedGuestPage::Login(data) => Some(data),
-            RequestedGuestPage::NotFound => None,
+        if let RequestedGuestPage::Login(data) = self {
+            Some(data)
+        } else {
+            None
+        }
+    }
+
+    fn register_data(&self) -> Option<&RegisterPageData> {
+        if let RequestedGuestPage::Register(data) = self {
+            Some(data)
+        } else {
+            None
         }
     }
 }

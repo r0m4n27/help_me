@@ -2,7 +2,7 @@ use seed::prelude::*;
 
 use crate::{
     api::{
-        auth::{login, Token},
+        auth::{login, register, RegisterPayload, Token},
         task::{resolve_task, submit_task, update_task, Task},
         user::ApiUser,
         ApiResult,
@@ -39,6 +39,7 @@ pub enum RequestApiMsg {
         description: String,
     },
     Login(String, String),
+    Register(RegisterPayload),
 }
 
 impl RequestApiMsg {
@@ -60,6 +61,7 @@ impl RequestApiMsg {
             RequestApiMsg::Login(user_name, password) => login(&user_name, &password)
                 .await
                 .map(ResponseApiMsg::Login),
+            RequestApiMsg::Register(payload) => register(&payload).await.map(ResponseApiMsg::Login),
         };
 
         match result {

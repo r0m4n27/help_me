@@ -40,7 +40,7 @@ trait BearerRequest {
     fn bearer(self, token: &str) -> Self;
 }
 
-impl<'a> BearerRequest for Request<'_> {
+impl BearerRequest for Request<'_> {
     fn bearer(self, token: &str) -> Self {
         self.header(Header::authorization(format!("bearer {}", token)))
     }

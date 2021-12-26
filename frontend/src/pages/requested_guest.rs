@@ -4,7 +4,7 @@ use crate::{
     api::task::Task,
     model::{page::requested_guest::RequestedGuestPage, Model},
     msg::Msg,
-    views::{guest_task_view, login_view},
+    views::{guest_task_view, login_view, register_view},
 };
 
 use super::hero_view;
@@ -16,5 +16,6 @@ pub fn requested_guest_view(task: &Task, pages: &RequestedGuestPage, model: &Mod
         RequestedGuestPage::Login(page_data) => {
             hero_view(login_view(page_data, &model.urls), model)
         }
+        RequestedGuestPage::Register(data) => hero_view(register_view(data), model),
     }
 }

@@ -1,11 +1,14 @@
 use seed::prelude::*;
 
-use crate::model::{
-    page::{
-        guest::GuestPage,
-        requested_guest::{RequestedGuestIndexData, RequestedGuestPage},
+use crate::{
+    api::auth::RegisterPayload,
+    model::{
+        page::{
+            guest::GuestPage,
+            requested_guest::{RequestedGuestIndexData, RequestedGuestPage},
+        },
+        Model,
     },
-    Model,
 };
 
 use super::{
@@ -20,6 +23,7 @@ pub enum PageMsg {
     CancelEdit,
     ConfirmEdit,
     Login,
+    Register,
 }
 
 impl PageMsg {
@@ -85,6 +89,30 @@ impl PageMsg {
 
                     orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Login(
                         user_name, password,
+                    ))));
+                }
+            }
+            PageMsg::Register => {
+                if let Some(data) = model.user.page().register_data() {
+                    let user_name = data
+                        .user_name_ref
+                        .get()
+                        .expect("User name not initialised!")
+                        .value();
+                    let password = data
+                        .password_ref
+                        .get()
+                        .expect("User name not initialised!")
+                        .value();
+
+                    let invite_code = data
+                        .invite_code_ref
+                        .get()
+                        .expect("Invite code not initialised!")
+                        .value();
+
+                    orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Register(
+                        RegisterPayload::new(user_name, password, invite_code),
                     ))));
                 }
             }

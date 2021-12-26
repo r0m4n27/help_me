@@ -1,9 +1,10 @@
 use seed::prelude::*;
 
-use self::login::LoginPageData;
+use self::{login::LoginPageData, register::RegisterPageData};
 
 pub mod guest;
 pub mod login;
+pub mod register;
 pub mod requested_guest;
 
 const LOGIN_PART: &str = "login";
@@ -43,4 +44,5 @@ pub trait Page {
     fn error_message(&self) -> Option<&String>;
     fn is_not_found(&self) -> bool;
     fn login_data(&self) -> Option<&LoginPageData>;
+    fn register_data(&self) -> Option<&RegisterPageData>;
 }
