@@ -1,3 +1,4 @@
+use blake2::{Blake2b512, Digest};
 use seed::fetch::Result;
 use seed::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -16,7 +17,7 @@ pub struct Token {
 pub async fn login(user_name: &str, password: &str) -> Result<ApiResult<(Token, ApiUser)>> {
     let payload = json!({
         "user_name": user_name,
-        "password": password
+        "password": hash_password(password)
     });
 
     let token_res: ApiResult<Token> = Request::new("/api/auth/login")
@@ -38,7 +39,7 @@ pub async fn login(user_name: &str, password: &str) -> Result<ApiResult<(Token, 
 #[derive(Serialize)]
 pub struct RegisterPayload {
     user_name: String,
-    password: String,
+    hashed_password: String,
     invite_code: Option<String>,
 }
 
@@ -52,7 +53,7 @@ impl RegisterPayload {
 
         RegisterPayload {
             user_name,
-            password,
+            hashed_password: hash_password(&password),
             invite_code,
         }
     }
@@ -85,4 +86,11 @@ pub async fn log_out(token: &str) -> Result<ApiResult<Value>> {
         .await?;
 
     Ok(response)
+}
+
+fn hash_password(password: &str) -> String {
+    let mut hasher = Blake2b512::new();
+    hasher.update(password.as_bytes());
+
+    format!("{:x}", hasher.finalize())
 }

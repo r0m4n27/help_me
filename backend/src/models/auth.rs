@@ -3,8 +3,6 @@ use std::str::FromStr;
 use chrono::{DateTime, Duration, Utc};
 use sqlx::{Pool, Sqlite};
 
-use crate::models::hash_password;
-
 use super::{generate_random_string, QueriesError, QueriesResult, User, UserType};
 
 // user_name isn't accessed but is needed for the query
@@ -39,14 +37,13 @@ impl<'a> AuthQueries<'a> {
         password: &str,
         user_type: UserType,
     ) -> QueriesResult<()> {
-        let password_hash = hash_password(password);
         let user_type_string = user_type.to_string();
 
         query!(
             "INSERT INTO user(user_name, password_hash, user_type)
             VALUES ($1, $2, $3)",
             user_name,
-            password_hash,
+            password,
             user_type_string
         )
         .execute(self.pool)
@@ -67,14 +64,12 @@ impl<'a> AuthQueries<'a> {
         .fetch_optional(self.pool)
         .await?;
 
-        let password_hash = hash_password(password);
-
         // It would be easier to work with functions like map and and_then
         // but since we're using futures the compiler can't determine the type of an async block
         // and then something like OptionFuture doen't work
         match user {
             Some(user) => {
-                if user.password_hash != password_hash {
+                if user.password_hash != password {
                     debug!("Wrong password for {} used", user_name);
 
                     Err(QueriesError::IllegalState(format!(
