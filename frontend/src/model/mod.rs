@@ -7,7 +7,7 @@ use self::{
     user::{AdminData, GuestData, RequestedGuestData, User},
 };
 use crate::{
-    api::{admin::Invite, task::Task},
+    api::{admin::Invite, task::Task, user::ApiUser},
     msg::Msg,
 };
 
@@ -63,10 +63,16 @@ impl Model {
         self.user = User::Guest(GuestData(self.urls.base_url.clone().into()))
     }
 
-    pub fn switch_to_admin(&mut self, token: String, invites: HashSet<Invite>) {
+    pub fn switch_to_admin(
+        &mut self,
+        token: String,
+        invites: HashSet<Invite>,
+        users: HashSet<ApiUser>,
+    ) {
         self.user = User::Admin(AdminData {
             token,
             invites,
+            users,
             page: self.urls.base_url.clone().into(),
         })
     }

@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub fn invites_view(invites: &HashSet<Invite>) -> Node<Msg> {
-    let sorted_invites: BinaryHeap<_> = invites.iter().collect();
+    let sorted_invites: BinaryHeap<_> = invites.clone().into_iter().collect();
     let entries = sorted_invites
         .into_sorted_vec()
         .into_iter()
@@ -34,16 +34,13 @@ pub fn invites_view(invites: &HashSet<Invite>) -> Node<Msg> {
     ]
 }
 
-fn invite_view(invite: &Invite) -> Node<Msg> {
-    let cloned_invite = invite.clone();
+fn invite_view(invite: Invite) -> Node<Msg> {
     tr![
         th![&invite.invite_code],
         td![a![
             C!["has-text-link", "is-unselectable"],
             "Delete",
-            ev(Ev::Click, move |_| Msg::Page(PageMsg::DeleteInvite(
-                cloned_invite
-            )))
+            ev(Ev::Click, move |_| Msg::Page(PageMsg::DeleteInvite(invite)))
         ]]
     ]
 }

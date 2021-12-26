@@ -1,7 +1,7 @@
 use seed::prelude::*;
 
 use crate::{
-    api::{admin::Invite, auth::RegisterPayload},
+    api::{admin::Invite, auth::RegisterPayload, user::ApiUser},
     model::{
         page::{
             guest::GuestPage,
@@ -27,6 +27,7 @@ pub enum PageMsg {
     Logout,
     CreateInvite,
     DeleteInvite(Invite),
+    DeleteUser(ApiUser),
 }
 
 impl PageMsg {
@@ -151,6 +152,14 @@ impl PageMsg {
                     .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::DeleteInvite(
                         data.token.clone(),
                         invite,
+                    ))));
+            }),
+            PageMsg::DeleteUser(user) => model.user.as_admin(|data| {
+                orders
+                    .skip()
+                    .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::DeleteUser(
+                        data.token.clone(),
+                        user,
                     ))));
             }),
         }

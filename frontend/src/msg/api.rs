@@ -9,7 +9,7 @@ use crate::{
         auth::{log_out, login, register, RegisterPayload, Token},
         refresh::refresh_admin,
         task::{get_task, resolve_task, submit_task, update_task, Task},
-        user::ApiUser,
+        user::{delete_user, ApiUser},
         ApiResult,
     },
     model::Model,
@@ -45,6 +45,7 @@ pub enum RequestApiMsg {
     },
     CreateInvite(String),
     DeleteInvite(String, Invite),
+    DeleteUser(String, ApiUser),
     Login(String, String),
     Register(RegisterPayload),
     Logout(String),
@@ -85,6 +86,9 @@ impl RequestApiMsg {
             RequestApiMsg::DeleteInvite(token, invite) => delete_invite(&token, invite)
                 .await
                 .map(ResponseApiMsg::DeleteInvite),
+            RequestApiMsg::DeleteUser(token, user) => delete_user(&token, user)
+                .await
+                .map(ResponseApiMsg::DeleteUser),
         };
 
         match result {
@@ -100,10 +104,11 @@ pub enum ResponseApiMsg {
     Edit(ApiResult<Task>),
     CreateInvite(ApiResult<Invite>),
     DeleteInvite(ApiResult<Invite>),
+    DeleteUser(ApiResult<ApiUser>),
     Login(ApiResult<(Token, ApiUser)>),
     Logout(ApiResult<Value>),
     RefreshRequestedGuest(ApiResult<Task>),
-    RefreshAdmin(ApiResult<(String, Vec<Invite>)>),
+    RefreshAdmin(ApiResult<(String, Vec<Invite>, Vec<ApiUser>)>),
 }
 
 impl ResponseApiMsg {
@@ -120,7 +125,7 @@ impl ResponseApiMsg {
             }),
             ResponseApiMsg::Login(res) => res.map(|(token, user)| {
                 if &user.user_type == "admin" {
-                    model.switch_to_admin(token.token, HashSet::new())
+                    model.switch_to_admin(token.token, HashSet::new(), HashSet::new())
                 } else {
                     model.switch_to_tutor(token.token)
                 }
@@ -134,14 +139,21 @@ impl ResponseApiMsg {
                     model.switch_to_requested_user(task)
                 }
             }),
-            ResponseApiMsg::RefreshAdmin(res) => res.map(|(token, invites)| {
-                model.switch_to_admin(token, invites.into_iter().collect())
+            ResponseApiMsg::RefreshAdmin(res) => res.map(|(token, invites, users)| {
+                model.switch_to_admin(
+                    token,
+                    invites.into_iter().collect(),
+                    users.into_iter().collect(),
+                )
             }),
             ResponseApiMsg::CreateInvite(res) => {
                 res.map(|invite| model.user.as_admin(|admin| admin.add_invite(invite)))
             }
             ResponseApiMsg::DeleteInvite(res) => {
                 res.map(|invite| model.user.as_admin(|admin| admin.remove_invite(&invite)))
+            }
+            ResponseApiMsg::DeleteUser(res) => {
+                res.map(|user| model.user.as_admin(|admin| admin.remove_user(&user)))
             }
         };
 

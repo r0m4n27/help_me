@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use seed::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::api::{admin::Invite, task::Task};
+use crate::api::{admin::Invite, task::Task, user::ApiUser};
 
 use super::page::{
     admin::AdminPage,
@@ -28,6 +28,7 @@ pub struct RequestedGuestData {
 pub struct AdminData {
     pub token: String,
     pub invites: HashSet<Invite>,
+    pub users: HashSet<ApiUser>,
     pub page: AdminPage,
 }
 
@@ -41,9 +42,10 @@ impl User {
                 task,
                 page: url.into(),
             }),
-            SavedUser::Admin(token, invites) => User::Admin(AdminData {
+            SavedUser::Admin(token, invites, users) => User::Admin(AdminData {
                 token,
                 invites: invites.into_iter().collect(),
+                users: users.into_iter().collect(),
                 page: url.into(),
             }),
             SavedUser::Tutor(token) => User::Tutor(token),
@@ -141,6 +143,10 @@ impl AdminData {
     pub fn remove_invite(&mut self, invite: &Invite) {
         self.invites.remove(invite);
     }
+
+    pub fn remove_user(&mut self, user: &ApiUser) {
+        self.users.remove(user);
+    }
 }
 
 // This enum is used to store the relevant data
@@ -150,7 +156,7 @@ impl AdminData {
 enum SavedUser {
     Guest,
     RequestedGuest(Task),
-    Admin(String, Vec<Invite>),
+    Admin(String, Vec<Invite>, Vec<ApiUser>),
     Tutor(String),
 }
 
@@ -166,6 +172,7 @@ impl SavedUser {
             User::Admin(data) => SavedUser::Admin(
                 data.token.clone(),
                 data.invites.clone().into_iter().collect(),
+                data.users.clone().into_iter().collect(),
             ),
             User::Tutor(token) => SavedUser::Tutor(token.clone()),
         };

@@ -1,22 +1,23 @@
-use std::collections::HashSet;
-
 use seed::prelude::*;
 
 use crate::{
-    api::admin::Invite,
-    model::{page::admin::AdminPage, Model},
+    model::{page::admin::AdminPage, user::AdminData, Model},
     msg::Msg,
-    views::invites_view,
+    views::{invites_view, users_view},
 };
 
 use super::hero_view;
 
-pub fn admin_view(invites: &HashSet<Invite>, page: &AdminPage, model: &Model) -> Node<Msg> {
-    match page {
+pub fn admin_view(data: &AdminData, model: &Model) -> Node<Msg> {
+    match &data.page {
         AdminPage::Index => hero_view(
             div![
                 C!["box"],
-                div![C!["columns"], div![C!["column"], invites_view(invites)]]
+                div![
+                    C!["columns"],
+                    div![C!["column"], invites_view(&data.invites)],
+                    div![C!["column"], users_view(&data.users)]
+                ]
             ],
             model,
         ),

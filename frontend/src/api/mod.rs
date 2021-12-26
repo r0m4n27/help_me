@@ -31,6 +31,10 @@ impl<T> ApiResult<T> {
             ApiResult::Ok(data) => func(data),
         }
     }
+
+    pub fn merge<S>(self, other: ApiResult<S>) -> ApiResult<(T, S)> {
+        self.and_then(|data| other.map(|other_data| (data, other_data)))
+    }
 }
 
 #[derive(Deserialize, Serialize)]
