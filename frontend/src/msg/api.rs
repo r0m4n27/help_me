@@ -2,7 +2,9 @@ use seed::prelude::*;
 
 use crate::{
     api::{
+        auth::{login, Token},
         task::{resolve_task, submit_task, update_task, Task},
+        user::ApiUser,
         ApiResult,
     },
     model::Model,
@@ -36,6 +38,7 @@ pub enum RequestApiMsg {
         title: String,
         description: String,
     },
+    Login(String, String),
 }
 
 impl RequestApiMsg {
@@ -54,6 +57,9 @@ impl RequestApiMsg {
             } => update_task(&task_id, &title, &description)
                 .await
                 .map(ResponseApiMsg::Edit),
+            RequestApiMsg::Login(user_name, password) => login(&user_name, &password)
+                .await
+                .map(ResponseApiMsg::Login),
         };
 
         match result {
@@ -67,6 +73,7 @@ pub enum ResponseApiMsg {
     Submit(ApiResult<Task>),
     Resolve(ApiResult<Task>),
     Edit(ApiResult<Task>),
+    Login(ApiResult<(Token, ApiUser)>),
 }
 
 impl ResponseApiMsg {
@@ -77,6 +84,13 @@ impl ResponseApiMsg {
             ResponseApiMsg::Edit(res) => {
                 res.map(|task| model.user.as_requested_guest(|data| data.update_task(task)))
             }
+            ResponseApiMsg::Login(res) => res.map(|(token, user)| {
+                if &user.user_type == "admin" {
+                    model.switch_to_admin(token.token)
+                } else {
+                    model.switch_to_tutor(token.token)
+                }
+            }),
         };
 
         if let ApiResult::Err(err) = res {

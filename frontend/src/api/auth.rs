@@ -3,20 +3,23 @@ use seed::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::ApiResult;
+use super::{
+    user::{get_user, ApiUser},
+    ApiResult,
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct Token {
     pub token: String,
 }
 
-pub async fn login(user_name: &str, password: &str) -> Result<ApiResult<Token>> {
+pub async fn login(user_name: &str, password: &str) -> Result<ApiResult<(Token, ApiUser)>> {
     let payload = json!({
         "user_name": user_name,
         "password": password
     });
 
-    let token = Request::new("/api/auth/login")
+    let token_res: ApiResult<Token> = Request::new("/api/auth/login")
         .method(Method::Post)
         .json(&payload)?
         .fetch()
@@ -24,7 +27,12 @@ pub async fn login(user_name: &str, password: &str) -> Result<ApiResult<Token>> 
         .json()
         .await?;
 
-    Ok(token)
+    match token_res {
+        ApiResult::Err(err) => Ok(ApiResult::Err(err)),
+        ApiResult::Ok(token) => Ok(get_user(&token.token)
+            .await?
+            .and_then(move |user| ApiResult::Ok((token, user)))),
+    }
 }
 
 // #[derive(Serialize)]

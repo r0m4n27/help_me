@@ -12,6 +12,8 @@ use super::page::{
 pub enum User {
     Guest(GuestData),
     RequestedGuest(RequestedGuestData),
+    Admin,
+    Tutor,
 }
 
 pub struct GuestData(pub GuestPage);
@@ -30,6 +32,8 @@ impl User {
                 task,
                 page: url.into(),
             }),
+            SavedUser::Admin => User::Admin,
+            SavedUser::Tutor => User::Tutor,
         }
     }
 
@@ -41,6 +45,8 @@ impl User {
         match self {
             User::Guest(data) => data.0 = url.into(),
             User::RequestedGuest(data) => data.page = url.into(),
+            User::Admin => todo!(),
+            User::Tutor => todo!(),
         }
     }
 
@@ -48,6 +54,8 @@ impl User {
         match self {
             User::Guest(data) => &data.0,
             User::RequestedGuest(data) => &data.page,
+            User::Admin => todo!(),
+            User::Tutor => todo!(),
         }
     }
 
@@ -55,6 +63,8 @@ impl User {
         match self {
             User::Guest(data) => &mut data.0,
             User::RequestedGuest(data) => &mut data.page,
+            User::Admin => todo!(),
+            User::Tutor => todo!(),
         }
     }
 
@@ -103,6 +113,8 @@ impl RequestedGuestData {
 enum SavedUser {
     Guest,
     RequestedGuest(Task),
+    Admin,
+    Tutor,
 }
 
 impl SavedUser {
@@ -114,6 +126,8 @@ impl SavedUser {
         let saved_user = match user {
             User::Guest(_) => SavedUser::Guest,
             User::RequestedGuest(data) => SavedUser::RequestedGuest(data.task.clone()),
+            User::Admin => SavedUser::Admin,
+            User::Tutor => SavedUser::Tutor,
         };
 
         LocalStorage::insert(Self::storage_key(), &saved_user).expect("Can't save User")

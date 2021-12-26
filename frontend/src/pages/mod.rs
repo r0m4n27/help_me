@@ -15,6 +15,8 @@ pub fn page_view(model: &Model) -> Node<Msg> {
     match &model.user {
         User::Guest(data) => guest_view(&data.0, model),
         User::RequestedGuest(data) => requested_guest_view(&data.task, &data.page, model),
+        User::Admin => todo!(),
+        User::Tutor => todo!(),
     }
 }
 

@@ -59,7 +59,6 @@ fn nav_bar_brand(model: &Model) -> Node<Msg> {
 
 fn nav_bar_items(model: &Model) -> Node<Msg> {
     // TODO: Log Out
-    // a![C!["button", "is-danger"], "Log Out"],
     let button = match model.user {
         User::Guest(_) | User::RequestedGuest(_) => a![
             C!["button", "is-primary"],
@@ -68,6 +67,7 @@ fn nav_bar_items(model: &Model) -> Node<Msg> {
                 At::Href => model.urls.login()
             }
         ],
+        User::Admin | User::Tutor => a![C!["button", "is-danger"], "Log Out"],
     };
 
     let github = div![

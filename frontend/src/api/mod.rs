@@ -22,6 +22,13 @@ impl<T> ApiResult<T> {
             ApiResult::Ok(data) => ApiResult::Ok(func(data)),
         }
     }
+
+    pub fn and_then<R, F: FnOnce(T) -> ApiResult<R>>(self, func: F) -> ApiResult<R> {
+        match self {
+            ApiResult::Err(err) => ApiResult::Err(err),
+            ApiResult::Ok(data) => func(data),
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize)]

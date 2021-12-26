@@ -70,7 +70,24 @@ impl PageMsg {
                     })));
                 }
             }),
-            PageMsg::Login => todo!(),
+            PageMsg::Login => {
+                if let Some(data) = model.user.page().login_data() {
+                    let user_name = data
+                        .user_name_ref
+                        .get()
+                        .expect("User name not initialised!")
+                        .value();
+                    let password = data
+                        .password_ref
+                        .get()
+                        .expect("User name not initialised!")
+                        .value();
+
+                    orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Login(
+                        user_name, password,
+                    ))));
+                }
+            }
         }
     }
 }

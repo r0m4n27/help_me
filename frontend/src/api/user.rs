@@ -1,19 +1,27 @@
-// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-// pub struct User {
-//     pub user_name: String,
-//     pub user_type: String,
-// }
+use seed::fetch::Result;
+use seed::prelude::*;
 
-// pub async fn get_user(token: &str) -> Result<ApiResult<User>> {
-//     let task = Request::get("/api/user")
-//         .bearer(token)
-//         .send()
-//         .await?
-//         .json()
-//         .await?;
+use serde::{Deserialize, Serialize};
 
-//     Ok(task)
-// }
+use super::{ApiResult, BearerRequest};
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct ApiUser {
+    pub user_name: String,
+    pub user_type: String,
+}
+
+pub async fn get_user(token: &str) -> Result<ApiResult<ApiUser>> {
+    let task = Request::new("/api/user")
+        .method(Method::Get)
+        .bearer(token)
+        .fetch()
+        .await?
+        .json()
+        .await?;
+
+    Ok(task)
+}
 
 // pub async fn get_users_admin(token: &str) -> Result<ApiResult<Vec<User>>> {
 //     let response = Request::get("/api/admin/users")

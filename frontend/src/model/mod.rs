@@ -51,4 +51,12 @@ impl Model {
     pub fn switch_to_guest(&mut self) {
         self.user = User::Guest(GuestData(self.urls.base_url.clone().into()))
     }
+
+    pub fn switch_to_admin(&mut self, _: String) {
+        self.user = User::Admin
+    }
+
+    pub fn switch_to_tutor(&mut self, _: String) {
+        self.user = User::Tutor
+    }
 }
