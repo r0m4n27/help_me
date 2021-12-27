@@ -5,24 +5,32 @@ use seed::prelude::*;
 use super::Page;
 
 pub enum AdminPage {
-    Index,
+    Index { error: Option<String> },
     NotFound,
 }
 
 impl From<Url> for AdminPage {
     fn from(mut url: Url) -> Self {
         match url.remaining_path_parts().as_slice() {
-            [] => AdminPage::Index,
+            [] => AdminPage::Index { error: None },
             _ => AdminPage::NotFound,
         }
     }
 }
 
 impl Page for AdminPage {
-    fn set_error_message(&mut self, _: String) {}
+    fn set_error_message(&mut self, message: String) {
+        if let AdminPage::Index { error } = self {
+            *error = Some(message)
+        }
+    }
 
     fn error_message(&self) -> Option<&String> {
-        None
+        if let AdminPage::Index { error } = self {
+            error.as_ref()
+        } else {
+            None
+        }
     }
 
     fn is_not_found(&self) -> bool {

@@ -10,7 +10,7 @@ use super::hero_view;
 
 pub fn admin_view(data: &AdminData, model: &Model) -> Node<Msg> {
     match &data.page {
-        AdminPage::Index => hero_view(
+        AdminPage::Index { .. } => hero_view(
             div![
                 C!["box"],
                 div![
