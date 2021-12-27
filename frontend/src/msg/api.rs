@@ -146,7 +146,8 @@ impl ResponseApiMsg {
                     model.switch_to_admin(token.token, HashSet::new(), HashSet::new())
                 } else {
                     model.switch_to_tutor(token.token, HashMap::new())
-                }
+                };
+                model.goto_index();
                 orders.send_msg(Msg::Refresh);
             }),
             ResponseApiMsg::Logout(res) => res.map(|_| model.switch_to_guest()),
@@ -196,7 +197,12 @@ impl ResponseApiMsg {
         };
 
         if let ApiResult::Err(err) = res {
-            model.user.page_mut().set_error_message(err.message)
+            if err.message == "Provided token is invalid!" {
+                model.switch_to_guest();
+                model.goto_index()
+            } else {
+                model.user.page_mut().set_error_message(err.message)
+            }
         }
     }
 }

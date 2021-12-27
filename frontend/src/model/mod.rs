@@ -34,8 +34,7 @@ impl Model {
             .subscribe(|_: subs::UrlChanged| Msg::RedirectIfNotFound)
             .subscribe(|_: ChangeUrlToken| Msg::RedirectIfNotFound)
             .subscribe(|_: RefreshToken| Msg::Refresh)
-            .stream(streams::interval(30_000, || Msg::Refresh))
-            .stream(streams::window_event(Ev::Focus, |_| Msg::Refresh))
+            .stream(streams::interval(10_000, || Msg::Refresh))
             .notify(RefreshToken)
             .notify(ChangeUrlToken);
 
@@ -88,6 +87,7 @@ impl Model {
 
     pub fn goto_index(&mut self) {
         self.urls.goto_index();
-        self.user.change_page(self.urls.base_url.clone())
+        self.current_url = self.urls.base_url.clone();
+        self.user.change_page(self.current_url.clone())
     }
 }
