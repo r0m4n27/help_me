@@ -14,9 +14,10 @@ pub fn tutor_view(data: &TutorData, model: &Model) -> Node<Msg> {
         TutorPage::NotFound => hero_view(div![], model),
         // The task page is only constructed if the task id exists
         // so we shoud be able to safely unwrap it
-        TutorPage::Task { task_id, .. } => {
-            hero_view(tutor_task_view(data.tasks.get(task_id).unwrap()), model)
-        }
-        TutorPage::Settings(data) => hero_view(settings_view(data), model),
+        TutorPage::Task { task_id, .. } => hero_view(
+            tutor_task_view(data.tasks.get(task_id).unwrap()).map_msg(Msg::Page),
+            model,
+        ),
+        TutorPage::Settings(data) => hero_view(settings_view(data).map_msg(Msg::Page), model),
     }
 }

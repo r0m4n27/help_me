@@ -2,11 +2,11 @@ use seed::prelude::*;
 
 use crate::{
     model::page::{login::LoginPageData, Urls},
-    msg::{page::PageMsg, Msg},
+    msg::page::PageMsg,
     views::util::{box_header_view, input_view},
 };
 
-pub fn login_view(page_data: &LoginPageData, urls: &Urls) -> Node<Msg> {
+pub fn login_view(page_data: &LoginPageData, urls: &Urls) -> Node<PageMsg> {
     form![
         C!["box"],
         box_header_view("Login"),
@@ -35,7 +35,7 @@ pub fn login_view(page_data: &LoginPageData, urls: &Urls) -> Node<Msg> {
                 a![
                     C!["button", "is-primary", "level-item"],
                     "Login",
-                    ev(Ev::Click, |_| Msg::Page(PageMsg::Login))
+                    ev(Ev::Click, |_| PageMsg::Login)
                 ],
                 a![
                     C!["has-text-link", "level-item"],

@@ -1,8 +1,8 @@
 use seed::prelude::*;
 
-use crate::{msg::Msg, views::util::box_header_view};
+use crate::views::util::box_header_view;
 
-pub struct TaskViewProps<'a> {
+pub struct TaskViewProps<'a, Msg> {
     pub header: &'a str,
     pub sub_header: Option<&'a str>,
     pub title: &'a str,
@@ -10,7 +10,7 @@ pub struct TaskViewProps<'a> {
     pub buttons: Node<Msg>,
 }
 
-pub fn task_view(props: TaskViewProps) -> Node<Msg> {
+pub fn task_view<Msg>(props: TaskViewProps<'_, Msg>) -> Node<Msg> {
     let sub_header = if let Some(sub_header) = props.sub_header {
         div![
             C!["content", "has-text-centered"],

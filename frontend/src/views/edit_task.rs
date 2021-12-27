@@ -3,12 +3,9 @@ use seed::prelude::{
     *,
 };
 
-use crate::{
-    msg::Msg,
-    views::util::{box_header_view, input_view},
-};
+use crate::views::util::{box_header_view, input_view};
 
-pub struct EditTaskProps<'a> {
+pub struct EditTaskProps<'a, Msg> {
     pub header: &'a str,
     pub start_title: Option<&'a str>,
     pub start_description: Option<&'a str>,
@@ -17,7 +14,7 @@ pub struct EditTaskProps<'a> {
     pub buttons: Node<Msg>,
 }
 
-pub fn edit_task_view(props: EditTaskProps<'_>) -> Node<Msg> {
+pub fn edit_task_view<Msg>(props: EditTaskProps<'_, Msg>) -> Node<Msg> {
     let title = props.start_title.unwrap_or("");
     let description = props.start_description.unwrap_or("");
 

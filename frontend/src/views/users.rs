@@ -2,12 +2,9 @@ use std::collections::{BinaryHeap, HashSet};
 
 use seed::prelude::*;
 
-use crate::{
-    api::user::ApiUser,
-    msg::{page::PageMsg, Msg},
-};
+use crate::{api::user::ApiUser, msg::page::PageMsg};
 
-pub fn users_view(users: &HashSet<ApiUser>) -> Node<Msg> {
+pub fn users_view(users: &HashSet<ApiUser>) -> Node<PageMsg> {
     let sorted_users: BinaryHeap<_> = users.clone().into_iter().collect();
     let entries = sorted_users.into_sorted_vec().into_iter().map(user_view);
 
@@ -35,12 +32,12 @@ pub fn users_view(users: &HashSet<ApiUser>) -> Node<Msg> {
     ]
 }
 
-fn user_view(user: ApiUser) -> Node<Msg> {
+fn user_view(user: ApiUser) -> Node<PageMsg> {
     tr![
         th![&user.user_name],
         td![
             a![C!["has-text-link", "is-unselectable"], "Delete"],
-            ev(Ev::Click, move |_| Msg::Page(PageMsg::DeleteUser(user)))
+            ev(Ev::Click, move |_| PageMsg::DeleteUser(user))
         ]
     ]
 }

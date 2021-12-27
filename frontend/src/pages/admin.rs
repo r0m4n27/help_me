@@ -15,13 +15,13 @@ pub fn admin_view(data: &AdminData, model: &Model) -> Node<Msg> {
                 C!["box"],
                 div![
                     C!["columns"],
-                    div![C!["column"], invites_view(&data.invites)],
-                    div![C!["column"], users_view(&data.users)]
+                    div![C!["column"], invites_view(&data.invites).map_msg(Msg::Page)],
+                    div![C!["column"], users_view(&data.users).map_msg(Msg::Page)]
                 ]
             ],
             model,
         ),
         AdminPage::NotFound => hero_view(div![], model),
-        AdminPage::Settings(data) => hero_view(settings_view(data), model),
+        AdminPage::Settings(data) => hero_view(settings_view(data).map_msg(Msg::Page), model),
     }
 }

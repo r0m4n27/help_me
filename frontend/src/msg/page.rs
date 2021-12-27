@@ -1,4 +1,7 @@
-use seed::prelude::*;
+use seed::prelude::{
+    web_sys::{HtmlInputElement, HtmlTextAreaElement},
+    *,
+};
 
 use crate::{
     api::{admin::Invite, auth::RegisterPayload, task::Task, user::ApiUser},
@@ -11,15 +14,28 @@ use crate::{
     },
 };
 
-use super::{
-    api::{ApiMsg, RequestApiMsg},
-    Msg,
-};
+use super::{request::RequestApiMsg, Msg};
+
+trait InputExt {
+    fn value(&self) -> String;
+}
+
+impl InputExt for ElRef<HtmlInputElement> {
+    fn value(&self) -> String {
+        self.get().expect("Input not initialised!").value()
+    }
+}
+
+impl InputExt for ElRef<HtmlTextAreaElement> {
+    fn value(&self) -> String {
+        self.get().expect("Textarea not initialised!").value()
+    }
+}
 
 pub enum PageMsg {
-    Submit,
-    Edit,
-    Resolve,
+    SubmitTask,
+    EditTask,
+    ResolveTask,
     CancelEdit,
     ConfirmEdit,
     Login,
@@ -28,8 +44,8 @@ pub enum PageMsg {
     CreateInvite,
     DeleteInvite(Invite),
     DeleteUser(ApiUser),
-    Process(Task),
-    Finish(Task),
+    ProcessTask(Task),
+    FinishTask(Task),
     ChangeUsername,
     ChangePassword,
 }
@@ -37,33 +53,19 @@ pub enum PageMsg {
 impl PageMsg {
     pub fn update(self, model: &mut Model, orders: &mut impl Orders<Msg>) {
         match self {
-            PageMsg::Submit => model.user.as_guest(|data| {
+            PageMsg::SubmitTask => model.user.as_guest(|data| {
                 if let GuestPage::Index(index_data) = &data.0 {
-                    let title = index_data
-                        .title_ref
-                        .get()
-                        .expect("Title not initialised!")
-                        .value();
-
-                    let description = index_data
-                        .description_ref
-                        .get()
-                        .expect("Description not initialised")
-                        .value();
+                    let title = index_data.title_ref.value();
+                    let description = index_data.description_ref.value();
 
                     orders
                         .skip()
-                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Submit(
-                            title,
-                            description,
-                        ))));
+                        .send_msg(RequestApiMsg::Submit(title, description).into());
                 }
             }),
-            PageMsg::Edit => model.user.as_requested_guest(|data| data.start_editing()),
-            PageMsg::Resolve => model.user.as_requested_guest(|data| {
-                orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Resolve(
-                    data.task.id.clone(),
-                ))));
+            PageMsg::EditTask => model.user.as_requested_guest(|data| data.start_editing()),
+            PageMsg::ResolveTask => model.user.as_requested_guest(|data| {
+                orders.send_msg(RequestApiMsg::Resolve(data.task.id.clone()).into());
             }),
             PageMsg::CancelEdit => model.user.as_requested_guest(|data| data.cancel_editing()),
             PageMsg::ConfirmEdit => model.user.as_requested_guest(|data| {
@@ -73,156 +75,109 @@ impl PageMsg {
                     ..
                 }) = &data.page
                 {
-                    let title = title_ref.get().expect("Title not initialised!").value();
-                    let description = description_ref
-                        .get()
-                        .expect("Description not initialised")
-                        .value();
+                    let title = title_ref.value();
+                    let description = description_ref.value();
 
-                    orders
-                        .skip()
-                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Edit {
+                    orders.skip().send_msg(
+                        RequestApiMsg::Edit {
                             task_id: data.task.id.clone(),
                             title,
                             description,
-                        })));
+                        }
+                        .into(),
+                    );
                 }
             }),
             PageMsg::Login => {
                 if let Some(data) = model.user.page().login_data() {
-                    let user_name = data
-                        .user_name_ref
-                        .get()
-                        .expect("User name not initialised!")
-                        .value();
-                    let password = data
-                        .password_ref
-                        .get()
-                        .expect("User name not initialised!")
-                        .value();
+                    let user_name = data.user_name_ref.value();
+                    let password = data.password_ref.value();
 
                     orders
                         .skip()
-                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Login(
-                            user_name, password,
-                        ))));
+                        .send_msg(RequestApiMsg::Login(user_name, password).into());
                 }
             }
             PageMsg::Register => {
                 if let Some(data) = model.user.page().register_data() {
-                    let user_name = data
-                        .user_name_ref
-                        .get()
-                        .expect("User name not initialised!")
-                        .value();
-                    let password = data
-                        .password_ref
-                        .get()
-                        .expect("User name not initialised!")
-                        .value();
+                    let user_name = data.user_name_ref.value();
+                    let password = data.password_ref.value();
 
-                    let invite_code = data
-                        .invite_code_ref
-                        .get()
-                        .expect("Invite code not initialised!")
-                        .value();
+                    let invite_code = data.invite_code_ref.value();
 
-                    orders
-                        .skip()
-                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Register(
-                            RegisterPayload::new(user_name, password, invite_code),
-                        ))));
+                    orders.skip().send_msg(
+                        RequestApiMsg::Register(RegisterPayload::new(
+                            user_name,
+                            password,
+                            invite_code,
+                        ))
+                        .into(),
+                    );
                 }
             }
             PageMsg::Logout => {
                 if let Some(token) = model.user.get_token() {
                     orders
                         .skip()
-                        .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::Logout(
-                            token.clone(),
-                        ))));
+                        .send_msg(RequestApiMsg::Logout(token.clone()).into());
                 }
             }
             PageMsg::CreateInvite => model.user.as_admin(|data| {
                 orders
                     .skip()
-                    .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::CreateInvite(
-                        data.token.clone(),
-                    ))));
+                    .send_msg(RequestApiMsg::CreateInvite(data.token.clone()).into());
             }),
             PageMsg::DeleteInvite(invite) => model.user.as_admin(|data| {
                 orders
                     .skip()
-                    .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::DeleteInvite(
-                        data.token.clone(),
-                        invite,
-                    ))));
+                    .send_msg(RequestApiMsg::DeleteInvite(data.token.clone(), invite).into());
             }),
             PageMsg::DeleteUser(user) => model.user.as_admin(|data| {
                 orders
                     .skip()
-                    .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::DeleteUser(
-                        data.token.clone(),
-                        user,
-                    ))));
+                    .send_msg(RequestApiMsg::DeleteUser(data.token.clone(), user).into());
             }),
-            PageMsg::Process(task) => model.user.as_tutor(|data| {
+            PageMsg::ProcessTask(task) => model.user.as_tutor(|data| {
                 orders
                     .skip()
-                    .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::ProcessTask(
-                        data.token.clone(),
-                        task,
-                    ))));
+                    .send_msg(RequestApiMsg::ProcessTask(data.token.clone(), task).into());
             }),
-            PageMsg::Finish(task) => model.user.as_tutor(|data| {
+            PageMsg::FinishTask(task) => model.user.as_tutor(|data| {
                 orders
                     .skip()
-                    .send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::FinishTask(
-                        data.token.clone(),
-                        task,
-                    ))));
+                    .send_msg(RequestApiMsg::FinishTask(data.token.clone(), task).into());
             }),
             PageMsg::ChangeUsername => {
                 if let Some(data) = model.user.page().settings_data() {
                     if let Some(token) = model.user.get_token() {
-                        let user_name = data
-                            .user_name_ref
-                            .get()
-                            .expect("User name not initialised!")
-                            .value();
-                        let user_name_again = data
-                            .user_name_again_ref
-                            .get()
-                            .expect("User name not initialised!")
-                            .value();
+                        let user_name = data.user_name_ref.value();
+                        let user_name_again = data.user_name_again_ref.value();
 
-                        orders.skip().send_msg(Msg::Api(ApiMsg::Request(
-                            RequestApiMsg::ChangeUsername(
-                                token.clone(),
+                        orders.skip().send_msg(
+                            RequestApiMsg::ChangeUsername {
+                                token: token.clone(),
                                 user_name,
                                 user_name_again,
-                            ),
-                        )));
+                            }
+                            .into(),
+                        );
                     }
                 }
             }
             PageMsg::ChangePassword => {
                 if let Some(data) = model.user.page().settings_data() {
                     if let Some(token) = model.user.get_token() {
-                        let password = data
-                            .password_ref
-                            .get()
-                            .expect("Password not initialised!")
-                            .value();
-                        let password_again = data
-                            .password_again_ref
-                            .get()
-                            .expect("Password not initialised!")
-                            .value();
+                        let password = data.password_ref.value();
+                        let password_again = data.password_again_ref.value();
 
-                        orders.skip().send_msg(Msg::Api(ApiMsg::Request(
-                            RequestApiMsg::ChangePassword(token.clone(), password, password_again),
-                        )));
+                        orders.skip().send_msg(
+                            RequestApiMsg::ChangePassword {
+                                token: token.clone(),
+                                password,
+                                password_again,
+                            }
+                            .into(),
+                        );
                     }
                 }
             }

@@ -2,11 +2,11 @@ use seed::prelude::*;
 
 use crate::{
     model::page::register::RegisterPageData,
-    msg::{page::PageMsg, Msg},
+    msg::page::PageMsg,
     views::util::{box_header_view, input_view},
 };
 
-pub fn register_view(page_data: &RegisterPageData) -> Node<Msg> {
+pub fn register_view(page_data: &RegisterPageData) -> Node<PageMsg> {
     form![
         C!["box"],
         box_header_view("Register"),
@@ -39,7 +39,7 @@ pub fn register_view(page_data: &RegisterPageData) -> Node<Msg> {
         a![
             C!["button", "is-primary"],
             "Register",
-            ev(Ev::Click, |_| Msg::Page(PageMsg::Register))
+            ev(Ev::Click, |_| PageMsg::Register)
         ]
     ]
 }

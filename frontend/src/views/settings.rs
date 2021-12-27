@@ -2,11 +2,11 @@ use seed::prelude::*;
 
 use crate::{
     model::page::settings::SettingsPageData,
-    msg::{page::PageMsg, Msg},
+    msg::page::PageMsg,
     views::util::{box_header_view, input_view},
 };
 
-pub fn settings_view(page_data: &SettingsPageData) -> Node<Msg> {
+pub fn settings_view(page_data: &SettingsPageData) -> Node<PageMsg> {
     form![
         C!["box"],
         box_header_view("Settings"),
@@ -35,7 +35,7 @@ pub fn settings_view(page_data: &SettingsPageData) -> Node<Msg> {
                 a![
                     C!["button", "is-primary"],
                     "Change User Name",
-                    ev(Ev::Click, |_| Msg::Page(PageMsg::ChangeUsername))
+                    ev(Ev::Click, |_| PageMsg::ChangeUsername)
                 ],
             ],
             div![
@@ -60,7 +60,7 @@ pub fn settings_view(page_data: &SettingsPageData) -> Node<Msg> {
                 a![
                     C!["button", "is-primary"],
                     "Change Password",
-                    ev(Ev::Click, |_| Msg::Page(PageMsg::ChangePassword))
+                    ev(Ev::Click, |_| PageMsg::ChangePassword)
                 ],
             ]
         ]

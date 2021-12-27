@@ -4,9 +4,7 @@ use seed::prelude::{
 };
 
 use crate::{
-    api::task::Task,
-    model::page::requested_guest::RequestedGuestIndexData,
-    msg::{page::PageMsg, Msg},
+    api::task::Task, model::page::requested_guest::RequestedGuestIndexData, msg::page::PageMsg,
 };
 
 use super::{
@@ -14,7 +12,7 @@ use super::{
     task_view::{task_view, TaskViewProps},
 };
 
-pub fn guest_task_view(task: &Task, page_data: &RequestedGuestIndexData) -> Node<Msg> {
+pub fn guest_task_view(task: &Task, page_data: &RequestedGuestIndexData) -> Node<PageMsg> {
     match page_data {
         RequestedGuestIndexData::Viewing { .. } => guest_task_default_view(task),
         RequestedGuestIndexData::Editing {
@@ -25,18 +23,18 @@ pub fn guest_task_view(task: &Task, page_data: &RequestedGuestIndexData) -> Node
     }
 }
 
-fn guest_task_default_view(task: &Task) -> Node<Msg> {
+fn guest_task_default_view(task: &Task) -> Node<PageMsg> {
     let buttons = div![
         C!["buttons"],
         a![
             C!["button", "is-danger"],
             "Resolve",
-            ev(Ev::Click, |_| Msg::Page(PageMsg::Resolve))
+            ev(Ev::Click, |_| PageMsg::ResolveTask)
         ],
         a![
             C!["button", "is-info"],
             "Edit",
-            ev(Ev::Click, |_| Msg::Page(PageMsg::Edit))
+            ev(Ev::Click, |_| PageMsg::EditTask)
         ]
     ];
 
@@ -56,18 +54,18 @@ fn guest_task_edit_view(
     task: &Task,
     title_ref: &ElRef<HtmlInputElement>,
     description_ref: &ElRef<HtmlTextAreaElement>,
-) -> Node<Msg> {
+) -> Node<PageMsg> {
     let buttons = div![
         C!["buttons"],
         a![
             C!["button", "is-danger"],
             "Cancel",
-            ev(Ev::Click, |_| Msg::Page(PageMsg::CancelEdit))
+            ev(Ev::Click, |_| PageMsg::CancelEdit)
         ],
         a![
             C!["button", "is-primary"],
             "Confirm",
-            ev(Ev::Click, |_| Msg::Page(PageMsg::ConfirmEdit))
+            ev(Ev::Click, |_| PageMsg::ConfirmEdit)
         ]
     ];
 

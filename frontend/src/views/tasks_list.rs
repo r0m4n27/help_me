@@ -2,9 +2,9 @@ use std::collections::{BinaryHeap, HashMap};
 
 use seed::prelude::*;
 
-use crate::{api::task::Task, model::page::Urls, msg::Msg, views::util::box_header_view};
+use crate::{api::task::Task, model::page::Urls, views::util::box_header_view};
 
-pub fn tasks_list_view(tasks: &HashMap<String, Task>, urls: &Urls) -> Node<Msg> {
+pub fn tasks_list_view<Msg>(tasks: &HashMap<String, Task>, urls: &Urls) -> Node<Msg> {
     let sorted_tasks: BinaryHeap<_> = tasks.iter().map(|(_, task)| task).collect();
     let elems = sorted_tasks
         .into_sorted_vec()
@@ -21,7 +21,7 @@ pub fn tasks_list_view(tasks: &HashMap<String, Task>, urls: &Urls) -> Node<Msg> 
     ]
 }
 
-fn task_view(task: &Task, urls: &Urls) -> Node<Msg> {
+fn task_view<Msg>(task: &Task, urls: &Urls) -> Node<Msg> {
     tr![
         th![
             C!["content"],

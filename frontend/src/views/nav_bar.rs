@@ -15,7 +15,7 @@ pub fn nav_bar_view(model: &Model) -> Node<Msg> {
             At::AriaLabel => "main navigation"
         },
         nav_bar_brand(model),
-        nav_bar_items(model)
+        nav_bar_items(model).map_msg(Msg::Page)
     ]
 }
 
@@ -57,7 +57,7 @@ fn nav_bar_brand(model: &Model) -> Node<Msg> {
     ]
 }
 
-fn nav_bar_items(model: &Model) -> Node<Msg> {
+fn nav_bar_items(model: &Model) -> Node<PageMsg> {
     let button = match model.user {
         User::Guest(_) | User::RequestedGuest(_) => a![
             C!["button", "is-primary"],
@@ -69,7 +69,7 @@ fn nav_bar_items(model: &Model) -> Node<Msg> {
         User::Admin(_) | User::Tutor(_) => a![
             C!["button", "is-danger"],
             "Log Out",
-            ev(Ev::Click, |_| Msg::Page(PageMsg::Logout))
+            ev(Ev::Click, |_| PageMsg::Logout)
         ],
     };
 

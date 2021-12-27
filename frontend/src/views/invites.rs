@@ -2,12 +2,9 @@ use std::collections::{BinaryHeap, HashSet};
 
 use seed::prelude::*;
 
-use crate::{
-    api::admin::Invite,
-    msg::{page::PageMsg, Msg},
-};
+use crate::{api::admin::Invite, msg::page::PageMsg};
 
-pub fn invites_view(invites: &HashSet<Invite>) -> Node<Msg> {
+pub fn invites_view(invites: &HashSet<Invite>) -> Node<PageMsg> {
     let sorted_invites: BinaryHeap<_> = invites.clone().into_iter().collect();
     let entries = sorted_invites
         .into_sorted_vec()
@@ -26,7 +23,7 @@ pub fn invites_view(invites: &HashSet<Invite>) -> Node<Msg> {
                 a![
                     C!["button", "is-primary", "level-item", "has-text-centered"],
                     "Generate Code",
-                    ev(Ev::Click, |_| Msg::Page(PageMsg::CreateInvite))
+                    ev(Ev::Click, |_| PageMsg::CreateInvite)
                 ]
             ]
         ],
@@ -34,13 +31,13 @@ pub fn invites_view(invites: &HashSet<Invite>) -> Node<Msg> {
     ]
 }
 
-fn invite_view(invite: Invite) -> Node<Msg> {
+fn invite_view(invite: Invite) -> Node<PageMsg> {
     tr![
         th![&invite.invite_code],
         td![a![
             C!["has-text-link", "is-unselectable"],
             "Delete",
-            ev(Ev::Click, move |_| Msg::Page(PageMsg::DeleteInvite(invite)))
+            ev(Ev::Click, move |_| PageMsg::DeleteInvite(invite))
         ]]
     ]
 }
