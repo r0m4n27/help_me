@@ -1,66 +1,43 @@
-use wasm_bindgen::{prelude::Closure, JsCast};
-use wasm_bindgen_futures::spawn_local;
-use web_sys::window;
-use yew::prelude::*;
+use seed::prelude::*;
 
-use crate::components::NavBar;
+use crate::{
+    model::{user::User, Model},
+    msg::Msg,
+    views::nav_bar_view,
+};
 
-mod index;
-mod login;
-mod register;
-mod task;
+use self::{
+    admin::admin_view, guest::guest_view, requested_guest::requested_guest_view, tutor::tutor_view,
+};
 
-pub use index::Index;
-pub use login::Login;
-pub use register::Register;
-pub use task::{Task, TaskProps};
+mod admin;
+mod guest;
+mod requested_guest;
+mod tutor;
 
-#[derive(PartialEq, Properties)]
-struct ErrorMessageProps {
-    err: Option<String>,
-}
-
-#[function_component(ErrorMessage)]
-fn error_message(props: &ErrorMessageProps) -> Html {
-    match props.err.as_ref() {
-        Some(err) => html! {
-            <div class="notification is-danger">
-                <p>{err}</p>
-            </div>
-        },
-        None => html! {},
+pub fn page_view(model: &Model) -> Node<Msg> {
+    match &model.user {
+        User::Guest(data) => guest_view(&data.0, model),
+        User::RequestedGuest(data) => requested_guest_view(&data.task, &data.page, model),
+        User::Admin(data) => admin_view(data, model),
+        User::Tutor(data) => tutor_view(data, model),
     }
 }
 
-#[function_component(UninitialisedView)]
-fn uninitialised_view() -> Html {
-    html! {
-        <section class="hero is-info is-fullheight">
-            <div class="hero-head">
-                <NavBar/>
-            </div>
-
-            <div class="hero-body section">
-            </div>
-        </section>
-    }
+fn hero_view(content: Node<Msg>, model: &Model) -> Node<Msg> {
+    section![
+        C!["hero", "is-info", "is-fullheight"],
+        div![C!["hero-head"], nav_bar_view(model)],
+        div![
+            C!["hero-body", "section"],
+            div![C!["container"], content, error_message_view(model)]
+        ]
+    ]
 }
 
-fn on_init<F: FnOnce() + 'static>(fun: F) {
-    use_effect_with_deps(
-        move |_| {
-            spawn_local(async move {
-                let window = window().unwrap();
-                let closure = Closure::once(fun);
-                window
-                    .set_timeout_with_callback_and_timeout_and_arguments_0(
-                        closure.as_ref().unchecked_ref(),
-                        200,
-                    )
-                    .unwrap();
-            });
-            || {}
-        },
-        true,
-    );
+fn error_message_view(model: &Model) -> Node<Msg> {
+    match model.user.page().error_message() {
+        Some(err) => div![C!["notification", "is-danger"], err],
+        None => div![],
+    }
 }

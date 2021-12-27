@@ -1,20 +1,36 @@
-use anyhow::Result;
-use reqwasm::http::Request;
+use seed::fetch::Result;
+use seed::prelude::*;
+
 use serde::{Deserialize, Serialize};
-use serde_json::{json, to_string, Value};
+use serde_json::{json, Value};
+
+use crate::api::hash_password;
 
 use super::{ApiResult, BearerRequest};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct User {
+#[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Hash)]
+pub struct ApiUser {
     pub user_name: String,
     pub user_type: String,
 }
 
-pub async fn get_user(token: &str) -> Result<ApiResult<User>> {
-    let task = Request::get("/api/user")
+impl Ord for ApiUser {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.user_name.cmp(&other.user_name)
+    }
+}
+
+impl PartialOrd for ApiUser {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+pub async fn get_user(token: &str) -> Result<ApiResult<ApiUser>> {
+    let task = Request::new("/api/user")
+        .method(Method::Get)
         .bearer(token)
-        .send()
+        .fetch()
         .await?
         .json()
         .await?;
@@ -22,10 +38,11 @@ pub async fn get_user(token: &str) -> Result<ApiResult<User>> {
     Ok(task)
 }
 
-pub async fn get_users_admin(token: &str) -> Result<ApiResult<Vec<User>>> {
-    let response = Request::get("/api/admin/users")
+pub async fn get_users(token: &str) -> Result<ApiResult<Vec<ApiUser>>> {
+    let response = Request::new("/api/admin/users")
+        .method(Method::Get)
         .bearer(token)
-        .send()
+        .fetch()
         .await?
         .json()
         .await?;
@@ -33,13 +50,44 @@ pub async fn get_users_admin(token: &str) -> Result<ApiResult<Vec<User>>> {
     Ok(response)
 }
 
-pub async fn delete_user_admin(token: &str, user_name: &str) -> Result<ApiResult<Value>> {
+pub async fn delete_user(token: &str, user: ApiUser) -> Result<ApiResult<ApiUser>> {
+    let payload = json!({ "user_name": &user.user_name });
+
+    let response: ApiResult<Value> = Request::new("/api/admin/users")
+        .method(Method::Delete)
+        .bearer(token)
+        .json(&payload)?
+        .fetch()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response.map(|_| user))
+}
+
+pub async fn change_username(token: &str, user_name: &str) -> Result<ApiResult<Value>> {
     let payload = json!({ "user_name": user_name });
 
-    let response = Request::delete("/api/admin/users")
+    let response = Request::new("/api/user")
+        .method(Method::Patch)
         .bearer(token)
-        .body(to_string(&payload).unwrap())
-        .send()
+        .json(&payload)?
+        .fetch()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response)
+}
+
+pub async fn change_password(token: &str, password: &str) -> Result<ApiResult<Value>> {
+    let payload = json!({ "password": hash_password(password) });
+
+    let response = Request::new("/api/user")
+        .method(Method::Patch)
+        .bearer(token)
+        .json(&payload)?
+        .fetch()
         .await?
         .json()
         .await?;

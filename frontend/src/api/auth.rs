@@ -1,38 +1,50 @@
-use anyhow::Result;
-use reqwasm::http::Request;
+use seed::fetch::Result;
+use seed::prelude::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, to_string, Value};
+use serde_json::{json, Value};
 
-use super::{ApiResult, BearerRequest};
+use super::{
+    hash_password,
+    user::{get_user, ApiUser},
+    ApiResult, BearerRequest,
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct Token {
     pub token: String,
 }
 
-pub async fn login(user_name: &str, password: &str) -> Result<ApiResult<Token>> {
+pub async fn login(user_name: &str, password: &str) -> Result<ApiResult<(Token, ApiUser)>> {
     let payload = json!({
         "user_name": user_name,
-        "password": password
+        "password": hash_password(password)
     });
-    let token = Request::post("/api/auth/login")
-        .body(to_string(&payload).unwrap())
-        .send()
+
+    let token_res: ApiResult<Token> = Request::new("/api/auth/login")
+        .method(Method::Post)
+        .json(&payload)?
+        .fetch()
         .await?
         .json()
         .await?;
 
-    Ok(token)
-}
-#[derive(Serialize)]
-pub struct RegisterPayload<'a> {
-    user_name: &'a str,
-    password: &'a str,
-    invite_code: Option<&'a str>,
+    match token_res {
+        ApiResult::Err(err) => Ok(ApiResult::Err(err)),
+        ApiResult::Ok(token) => Ok(get_user(&token.token)
+            .await?
+            .and_then(move |user| ApiResult::Ok((token, user)))),
+    }
 }
 
-impl<'a> RegisterPayload<'a> {
-    pub fn new(user_name: &'a str, password: &'a str, invite_code: &'a str) -> RegisterPayload<'a> {
+#[derive(Serialize)]
+pub struct RegisterPayload {
+    user_name: String,
+    password: String,
+    invite_code: Option<String>,
+}
+
+impl RegisterPayload {
+    pub fn new(user_name: String, password: String, invite_code: String) -> RegisterPayload {
         let invite_code = if invite_code.is_empty() {
             None
         } else {
@@ -41,27 +53,34 @@ impl<'a> RegisterPayload<'a> {
 
         RegisterPayload {
             user_name,
-            password,
+            password: hash_password(&password),
             invite_code,
         }
     }
 }
 
-pub async fn register(payload: &RegisterPayload<'_>) -> Result<ApiResult<Token>> {
-    let token = Request::post("/api/auth/register")
-        .body(to_string(&payload).unwrap())
-        .send()
+pub async fn register(payload: &RegisterPayload) -> Result<ApiResult<(Token, ApiUser)>> {
+    let token_res: ApiResult<Token> = Request::new("/api/auth/register")
+        .method(Method::Post)
+        .json(payload)?
+        .fetch()
         .await?
         .json()
         .await?;
 
-    Ok(token)
+    match token_res {
+        ApiResult::Err(err) => Ok(ApiResult::Err(err)),
+        ApiResult::Ok(token) => Ok(get_user(&token.token)
+            .await?
+            .and_then(move |user| ApiResult::Ok((token, user)))),
+    }
 }
 
 pub async fn log_out(token: &str) -> Result<ApiResult<Value>> {
-    let response = Request::post("/api/auth/logout")
+    let response = Request::new("/api/auth/logout")
+        .method(Method::Post)
         .bearer(token)
-        .send()
+        .fetch()
         .await?
         .json()
         .await?;

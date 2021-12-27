@@ -1,0 +1,24 @@
+mod edit_task;
+mod guest_task;
+mod invites;
+mod login;
+mod nav_bar;
+mod register;
+mod settings;
+mod submit_task;
+mod task_view;
+mod tasks_list;
+mod tutor_task;
+mod users;
+mod util;
+
+pub use guest_task::guest_task_view;
+pub use invites::invites_view;
+pub use login::login_view;
+pub use nav_bar::nav_bar_view;
+pub use register::register_view;
+pub use settings::settings_view;
+pub use submit_task::submit_task_view;
+pub use tasks_list::tasks_list_view;
+pub use tutor_task::tutor_task_view;
+pub use users::users_view;

@@ -9,11 +9,11 @@ use super::{generate_random_string, QueriesResult};
 
 #[derive(Debug, FromRow, Serialize)]
 pub struct Task {
-    id: String,
-    title: String,
-    body: String,
-    state: String,
-    created_at: String,
+    pub id: String,
+    pub title: String,
+    pub body: String,
+    pub state: String,
+    pub created_at: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -175,6 +175,11 @@ impl<'a> TaskQueries<'a> {
     }
 
     pub async fn edit_title(&self, id: &str, title: &str) -> QueriesResult<()> {
+        if title.is_empty() {
+            return Err(QueriesError::IllegalState(
+                "Title can't be empty!".to_string(),
+            ));
+        }
         query!("UPDATE task SET title = $1 WHERE id = $2", title, id)
             .execute(self.pool)
             .await?;
@@ -185,6 +190,12 @@ impl<'a> TaskQueries<'a> {
     }
 
     pub async fn edit_body(&self, id: &str, body: &str) -> QueriesResult<()> {
+        if body.is_empty() {
+            return Err(QueriesError::IllegalState(
+                "Body can't be empty!".to_string(),
+            ));
+        }
+
         query!("UPDATE task SET body = $1 WHERE id = $2", body, id)
             .execute(self.pool)
             .await?;
@@ -192,5 +203,18 @@ impl<'a> TaskQueries<'a> {
         debug!("Edited body of {}", id);
 
         Ok(())
+    }
+
+    pub async fn how_many_ahead(&self, task: &Task) -> QueriesResult<usize> {
+        let all_tasks = self.get_tasks().await?;
+
+        let pos = all_tasks
+            .iter()
+            .position(|t| t.id == task.id)
+            .ok_or_else(|| {
+                QueriesError::ItemNotFound(format!("Can't find task with id {}", task.id))
+            })?;
+
+        Ok(pos)
     }
 }

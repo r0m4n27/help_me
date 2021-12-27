@@ -1,6 +1,6 @@
 use sqlx::{query, query_as, Pool, Sqlite};
 
-use crate::models::{hash_password, QueriesError};
+use crate::models::QueriesError;
 
 use super::{QueriesResult, User};
 
@@ -92,19 +92,17 @@ impl<'a> UserQueries<'a> {
 
     pub async fn update_password(&self, token: &str, new_password: &str) -> QueriesResult<()> {
         let user = self.get_user(token).await?;
-
-        let hashed_password = hash_password(new_password);
         query!(
             "UPDATE user
             SET password_hash = $1
             WHERE user_name = $2",
-            hashed_password,
+            new_password,
             user.user_name
         )
         .execute(self.pool)
         .await?;
 
-        debug!("Updated password_hash {}", hashed_password);
+        debug!("Updated password_hash {}", new_password);
 
         Ok(())
     }

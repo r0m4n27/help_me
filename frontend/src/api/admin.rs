@@ -1,19 +1,20 @@
-use anyhow::Result;
-use reqwasm::http::Request;
+use seed::fetch::Result;
+use seed::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::{ApiResult, BearerRequest};
 
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Hash, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Invite {
     pub invite_code: String,
 }
 
 pub async fn create_invite(token: &str) -> Result<ApiResult<Invite>> {
-    let response = Request::post("/api/invites")
+    let response = Request::new("/api/invites")
+        .method(Method::Post)
         .bearer(token)
-        .send()
+        .fetch()
         .await?
         .json()
         .await?;
@@ -21,21 +22,23 @@ pub async fn create_invite(token: &str) -> Result<ApiResult<Invite>> {
     Ok(response)
 }
 
-pub async fn delete_invite(token: &str, invite_code: &str) -> Result<ApiResult<Value>> {
-    let response = Request::delete(&format!("/api/invites/{}", invite_code))
+pub async fn delete_invite(token: &str, invite: Invite) -> Result<ApiResult<Invite>> {
+    let response: ApiResult<Value> = Request::new(&format!("/api/invites/{}", invite.invite_code))
+        .method(Method::Delete)
         .bearer(token)
-        .send()
+        .fetch()
         .await?
         .json()
         .await?;
 
-    Ok(response)
+    Ok(response.map(|_| invite))
 }
 
 pub async fn get_invites(token: &str) -> Result<ApiResult<Vec<Invite>>> {
-    let response = Request::get("/api/invites")
+    let response = Request::new("/api/invites")
+        .method(Method::Get)
         .bearer(token)
-        .send()
+        .fetch()
         .await?
         .json()
         .await?;

@@ -5,11 +5,29 @@ To request the help the user creates a request where a message can be left.
 This message should contain a link where the student can be reached (e.g. a Zoom link).
 The tutors can see all request and process them until all requests are done.
 
+This project was done as part of the Rust course at the
+[HSA](https://www.hs-augsburg.de/Informatik.html) and therefore uses Rust
+for the front- and backend of the service.
+
+![](./assets/screenshot.png)
+
+## Libraries
+
+The backend uses [sqlx](https://github.com/launchbadge/sqlx) to access the
+sqlite database. Sqxl provides macros that turn the queries into rust code at compile time
+and also checks their validity. It also handles the migrations of the database.
+To serve the data to the frontend a simple REST-API is build using [Rocket](https://rocket.rs/).
+It also serves the assets for the frontend.
+
+The frontend is build using [seed](https://seed-rs.org/), which was inspired by [elm](https://elm-lang.org/).
+Earlier versions of the frontend used [yew](https://yew.rs/) and [yedux](https://github.com/intendednull/yewdux).
+
 ## Setup
 
 1. Install cargo packages
 
 ```sh
+rustup target add wasm32-unknown-unknown
 cargo install sqlx-cli --no-default-features --features sqlite
 cargo install trunk wasm-bindgen-cli
 ```
@@ -23,8 +41,11 @@ an absolute path otherwise the migrations can't be run)
 
 3. Perform the migrations
 
+The migrations are run automatically. You only have to
+create the sqlite database file that is at the `DATABASE_URL`.
+If you want to perform the migrations manually you can run:
+
 ```sh
-touch <path-to-db>/data.db
 cd backend
 sqlx migrate run
 ```
@@ -81,14 +102,10 @@ the tutor finishes it. After the request is submitted the user has the ability
 to change the content and resolve it by himself if the help from the tutor is not necessary.
 
 
-## Progress
-
-This project is still rough around the edges especially the frontend
-but it can be used nonetheless. But some features like a live refresh
-are not yet implemented.
-
 ## Useful Resources
 
 Other projects/blog posts that helped me in creating this project:
 
 - [RESTful API in Sync & Async Rust](https://github.com/pretzelhammer/rust-blog/blob/master/posts/restful-api-in-sync-and-async-rust.md)
+- [Rocket](https://rocket.rs/)
+- [Time Tracker (Seed)](https://github.com/MartinKavik/seed-app-time-tracker)
