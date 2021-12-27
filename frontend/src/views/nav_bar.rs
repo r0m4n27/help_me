@@ -31,7 +31,7 @@ fn nav_bar_brand(model: &Model) -> Node<Msg> {
     let github_link = a![
         C!["has-text-light", "is-flex", "is-align-items-center"],
         attrs! {
-            At::Href => "http://github.com/r0m4n27",
+            At::Href => "https://github.com/r0m4n27/help_me",
             At::Target => "_blank"
         },
         i![C!["fab", "fa-github-alt", "is-size-4"]]
