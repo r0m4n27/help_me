@@ -1,6 +1,9 @@
 use core::matches;
+use std::collections::HashMap;
 
 use seed::prelude::*;
+
+use crate::api::task::Task;
 
 use super::{login::LoginPageData, register::RegisterPageData, Page, TASK_PART};
 
@@ -15,14 +18,22 @@ pub enum TutorPage {
     NotFound,
 }
 
-impl From<Url> for TutorPage {
-    fn from(mut url: Url) -> Self {
+impl TutorPage {
+    pub fn new(mut url: Url, tasks: &HashMap<String, Task>) -> Self {
         match url.remaining_path_parts().as_slice() {
             [] => TutorPage::Index { error: None },
-            [TASK_PART, task_id] => TutorPage::Task {
-                error: None,
-                task_id: task_id.to_string(),
-            },
+            [TASK_PART, task_id] => {
+                let task_id = task_id.to_string();
+
+                if tasks.contains_key(&task_id) {
+                    TutorPage::Task {
+                        error: None,
+                        task_id,
+                    }
+                } else {
+                    TutorPage::NotFound
+                }
+            }
             _ => TutorPage::NotFound,
         }
     }

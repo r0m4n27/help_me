@@ -55,11 +55,11 @@ impl User {
                 users: users.into_iter().collect(),
                 page: url.into(),
             }),
-            SavedUser::Tutor(token, tasks) => User::Tutor(TutorData {
-                token,
-                tasks,
-                page: url.into(),
-            }),
+            SavedUser::Tutor(token, tasks) => {
+                let page = TutorPage::new(url, &tasks);
+
+                User::Tutor(TutorData { token, tasks, page })
+            }
         }
     }
 
@@ -72,7 +72,7 @@ impl User {
             User::Guest(data) => data.0 = url.into(),
             User::RequestedGuest(data) => data.page = url.into(),
             User::Admin(data) => data.page = url.into(),
-            User::Tutor(data) => data.page = url.into(),
+            User::Tutor(data) => data.page = TutorPage::new(url, &data.tasks),
         }
     }
 

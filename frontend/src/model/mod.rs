@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use seed::prelude::*;
 
 use self::{
-    page::Urls,
+    page::{tutor::TutorPage, Urls},
     user::{AdminData, GuestData, RequestedGuestData, TutorData, User},
 };
 use crate::{
@@ -80,11 +80,9 @@ impl Model {
     }
 
     pub fn switch_to_tutor(&mut self, token: String, tasks: HashMap<String, Task>) {
-        self.user = User::Tutor(TutorData {
-            token,
-            tasks,
-            page: self.current_url.clone().into(),
-        })
+        let page = TutorPage::new(self.current_url.clone(), &tasks);
+
+        self.user = User::Tutor(TutorData { token, tasks, page })
     }
 
     pub fn goto_index(&mut self) {
