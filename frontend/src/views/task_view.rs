@@ -1,6 +1,6 @@
 use seed::prelude::*;
 
-use crate::msg::Msg;
+use crate::{msg::Msg, views::util::box_header_view};
 
 pub struct TaskViewProps<'a> {
     pub header: &'a str,
@@ -22,10 +22,7 @@ pub fn task_view(props: TaskViewProps) -> Node<Msg> {
 
     div![
         C!["box"],
-        div![
-            C!["content", "has-text-centered"],
-            p![C!["title", "has-text-dark", "is-2"], props.header]
-        ],
+        box_header_view(props.header),
         sub_header,
         div![
             C!["content"],

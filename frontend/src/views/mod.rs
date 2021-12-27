@@ -10,6 +10,7 @@ mod task_view;
 mod tasks_list;
 mod tutor_task;
 mod users;
+mod util;
 
 pub use guest_task::guest_task_view;
 pub use invites::invites_view;

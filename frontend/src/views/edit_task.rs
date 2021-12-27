@@ -3,7 +3,10 @@ use seed::prelude::{
     *,
 };
 
-use crate::msg::Msg;
+use crate::{
+    msg::Msg,
+    views::util::{box_header_view, input_view},
+};
 
 pub struct EditTaskProps<'a> {
     pub header: &'a str,
@@ -20,23 +23,16 @@ pub fn edit_task_view(props: EditTaskProps<'_>) -> Node<Msg> {
 
     div![
         C!["box"],
-        div![
-            C!["content", "has-text-centered"],
-            p![C!["title", "has-text-dark", "is-2"], props.header],
-        ],
-        div![
-            C!["content"],
-            p![C!["title", "has-text-dark", "is-5", "level-left"], "Title"],
-            input![
-                C!["input"],
-                el_ref(props.title_ref),
-                attrs! {
-                    At::Value => title,
-                    At::Size => "50",
-                    At::Type => "text"
-                }
-            ]
-        ],
+        box_header_view(props.header),
+        input_view(
+            "Title",
+            props.title_ref,
+            attrs! {
+                At::Value => title,
+                At::Size => "50",
+                At::Type => "text"
+            }
+        ),
         div![
             C!["content"],
             p![

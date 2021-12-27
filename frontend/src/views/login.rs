@@ -3,47 +3,31 @@ use seed::prelude::*;
 use crate::{
     model::page::{login::LoginPageData, Urls},
     msg::{page::PageMsg, Msg},
+    views::util::{box_header_view, input_view},
 };
 
 pub fn login_view(page_data: &LoginPageData, urls: &Urls) -> Node<Msg> {
     form![
         C!["box"],
-        div![
-            C!["content", "has-text-centered"],
-            p![C!["title", "has-text-dark", "is-2"], "Login"]
-        ],
-        div![
-            C!["content"],
-            p![
-                C!["title", "has-text-dark", "is-5", "level-left"],
-                "User Name"
-            ],
-            input![
-                C!["input"],
-                attrs! {
-                    At::Size => "50",
-                    At::Type => "text",
-                    At::AutoComplete => "username"
-                },
-                el_ref(&page_data.user_name_ref)
-            ]
-        ],
-        div![
-            C!["content"],
-            p![
-                C!["title", "has-text-dark", "is-5", "level-left"],
-                "Password"
-            ],
-            input![
-                C!["input"],
-                attrs! {
-                    At::Size => "50",
-                    At::Type => "password",
-                    At::AutoComplete => "current-password"
-                },
-                el_ref(&page_data.password_ref)
-            ]
-        ],
+        box_header_view("Login"),
+        input_view(
+            "User Name",
+            &page_data.user_name_ref,
+            attrs! {
+                At::Size => "50",
+                At::Type => "text",
+                At::AutoComplete => "username"
+            }
+        ),
+        input_view(
+            "Password",
+            &page_data.password_ref,
+            attrs! {
+                At::Size => "50",
+                At::Type => "password",
+                At::AutoComplete => "current-password"
+            }
+        ),
         div![
             C!["level", "content"],
             div![

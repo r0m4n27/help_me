@@ -3,51 +3,35 @@ use seed::prelude::*;
 use crate::{
     model::page::settings::SettingsPageData,
     msg::{page::PageMsg, Msg},
+    views::util::{box_header_view, input_view},
 };
 
 pub fn settings_view(page_data: &SettingsPageData) -> Node<Msg> {
     form![
         C!["box"],
-        div![
-            C!["content", "has-text-centered"],
-            p![C!["title", "has-text-dark", "is-2"], "Settings"]
-        ],
+        box_header_view("Settings"),
         div![
             C!["columns"],
             div![
                 C!["column"],
-                div![
-                    C!["content"],
-                    p![
-                        C!["title", "has-text-dark", "is-5", "level-left"],
-                        "Change User Name"
-                    ],
-                    input![
-                        C!["input"],
-                        attrs! {
-                            At::Size => "50",
-                            At::Type => "text",
-                            At::AutoComplete => "username"
-                        },
-                        el_ref(&page_data.user_name_ref)
-                    ]
-                ],
-                div![
-                    C!["content"],
-                    p![
-                        C!["title", "has-text-dark", "is-5", "level-left"],
-                        "Retype User Name"
-                    ],
-                    input![
-                        C!["input"],
-                        attrs! {
-                            At::Size => "50",
-                            At::Type => "text",
-                            At::AutoComplete => "username"
-                        },
-                        el_ref(&page_data.user_name_again_ref)
-                    ]
-                ],
+                input_view(
+                    "Change User Name",
+                    &page_data.user_name_ref,
+                    attrs! {
+                        At::Size => "50",
+                        At::Type => "text",
+                        At::AutoComplete => "username"
+                    }
+                ),
+                input_view(
+                    "Retype User Name",
+                    &page_data.user_name_again_ref,
+                    attrs! {
+                        At::Size => "50",
+                        At::Type => "text",
+                        At::AutoComplete => "username"
+                    }
+                ),
                 a![
                     C!["button", "is-primary"],
                     "Change User Name",
@@ -56,38 +40,23 @@ pub fn settings_view(page_data: &SettingsPageData) -> Node<Msg> {
             ],
             div![
                 C!["column"],
-                div![
-                    C!["content"],
-                    p![
-                        C!["title", "has-text-dark", "is-5", "level-left"],
-                        "Change Password"
-                    ],
-                    input![
-                        C!["input"],
-                        attrs! {
-                            At::Size => "50",
-                            At::Type => "password",
-                            At::AutoComplete => "current-password"
-                        },
-                        el_ref(&page_data.password_ref)
-                    ]
-                ],
-                div![
-                    C!["content"],
-                    p![
-                        C!["title", "has-text-dark", "is-5", "level-left"],
-                        "Retype Password"
-                    ],
-                    input![
-                        C!["input"],
-                        attrs! {
-                            At::Size => "50",
-                            At::Type => "password",
-                            At::AutoComplete => "current-password"
-                        },
-                        el_ref(&page_data.password_again_ref)
-                    ]
-                ],
+                input_view(
+                    "Change Password",
+                    &page_data.password_ref,
+                    attrs! {
+                        At::Size => "50",
+                        At::Type => "password",
+                        At::AutoComplete => "current-password"
+                    }
+                ),
+                input_view(
+                    "Retype Password",
+                    &page_data.password_again_ref,
+                    attrs! {
+                        At::Size => "50",
+                        At::Type => "password"
+                    }
+                ),
                 a![
                     C!["button", "is-primary"],
                     "Change Password",
