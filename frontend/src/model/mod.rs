@@ -18,6 +18,7 @@ pub struct Model {
     pub expanded_menu: bool,
     pub user: User,
     pub urls: Urls,
+    pub current_url: Url,
 }
 
 #[derive(Clone)]
@@ -39,7 +40,8 @@ impl Model {
 
         Model {
             expanded_menu: false,
-            user: User::init(url),
+            user: User::init(url.clone()),
+            current_url: url,
             urls: Urls::new(Url::new()),
         }
     }
@@ -55,12 +57,12 @@ impl Model {
     pub fn switch_to_requested_user(&mut self, task: Task) {
         self.user = User::RequestedGuest(RequestedGuestData {
             task,
-            page: self.urls.base_url.clone().into(),
+            page: self.current_url.clone().into(),
         })
     }
 
     pub fn switch_to_guest(&mut self) {
-        self.user = User::Guest(GuestData(self.urls.base_url.clone().into()))
+        self.user = User::Guest(GuestData(self.current_url.clone().into()))
     }
 
     pub fn switch_to_admin(
@@ -73,7 +75,7 @@ impl Model {
             token,
             invites,
             users,
-            page: self.urls.base_url.clone().into(),
+            page: self.current_url.clone().into(),
         })
     }
 
@@ -81,7 +83,7 @@ impl Model {
         self.user = User::Tutor(TutorData {
             token,
             tasks,
-            page: self.urls.base_url.clone().into(),
+            page: self.current_url.clone().into(),
         })
     }
 

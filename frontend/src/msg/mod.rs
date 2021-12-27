@@ -24,7 +24,10 @@ impl Msg {
     pub fn update(self, model: &mut Model, orders: &mut impl Orders<Msg>) {
         match self {
             Msg::ChangeMenu => model.change_menu(),
-            Msg::UrlChanged(subs::UrlChanged(url)) => model.user.change_page(url),
+            Msg::UrlChanged(subs::UrlChanged(url)) => {
+                model.current_url = url.clone();
+                model.user.change_page(url)
+            }
             Msg::Api(msg) => msg.update(model, orders),
             Msg::Page(msg) => msg.update(model, orders),
             Msg::RedirectIfNotFound => {
