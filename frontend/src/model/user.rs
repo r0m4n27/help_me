@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use seed::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -9,6 +9,7 @@ use super::page::{
     admin::AdminPage,
     guest::GuestPage,
     requested_guest::{RequestedGuestIndexData, RequestedGuestPage},
+    tutor::TutorPage,
     Page,
 };
 
@@ -16,7 +17,7 @@ pub enum User {
     Guest(GuestData),
     RequestedGuest(RequestedGuestData),
     Admin(AdminData),
-    Tutor(String),
+    Tutor(TutorData),
 }
 
 pub struct GuestData(pub GuestPage);
@@ -30,6 +31,12 @@ pub struct AdminData {
     pub invites: HashSet<Invite>,
     pub users: HashSet<ApiUser>,
     pub page: AdminPage,
+}
+
+pub struct TutorData {
+    pub token: String,
+    pub tasks: HashMap<String, Task>,
+    pub page: TutorPage,
 }
 
 impl User {
@@ -48,7 +55,11 @@ impl User {
                 users: users.into_iter().collect(),
                 page: url.into(),
             }),
-            SavedUser::Tutor(token) => User::Tutor(token),
+            SavedUser::Tutor(token, tasks) => User::Tutor(TutorData {
+                token,
+                tasks,
+                page: url.into(),
+            }),
         }
     }
 
@@ -61,7 +72,7 @@ impl User {
             User::Guest(data) => data.0 = url.into(),
             User::RequestedGuest(data) => data.page = url.into(),
             User::Admin(data) => data.page = url.into(),
-            User::Tutor(_) => todo!(),
+            User::Tutor(data) => data.page = url.into(),
         }
     }
 
@@ -70,7 +81,7 @@ impl User {
             User::Guest(data) => &data.0,
             User::RequestedGuest(data) => &data.page,
             User::Admin(data) => &data.page,
-            User::Tutor(_) => todo!(),
+            User::Tutor(data) => &data.page,
         }
     }
 
@@ -79,12 +90,12 @@ impl User {
             User::Guest(data) => &mut data.0,
             User::RequestedGuest(data) => &mut data.page,
             User::Admin(data) => &mut data.page,
-            User::Tutor(_) => todo!(),
+            User::Tutor(data) => &mut data.page,
         }
     }
     pub fn get_token(&self) -> Option<&String> {
         match self {
-            User::Tutor(token) => Some(token),
+            User::Tutor(data) => Some(&data.token),
             User::Admin(data) => Some(&data.token),
             _ => None,
         }
@@ -157,7 +168,7 @@ enum SavedUser {
     Guest,
     RequestedGuest(Task),
     Admin(String, Vec<Invite>, Vec<ApiUser>),
-    Tutor(String),
+    Tutor(String, HashMap<String, Task>),
 }
 
 impl SavedUser {
@@ -174,7 +185,7 @@ impl SavedUser {
                 data.invites.clone().into_iter().collect(),
                 data.users.clone().into_iter().collect(),
             ),
-            User::Tutor(token) => SavedUser::Tutor(token.clone()),
+            User::Tutor(data) => SavedUser::Tutor(data.token.clone(), data.tasks.clone()),
         };
 
         LocalStorage::insert(Self::storage_key(), &saved_user).expect("Can't save User")

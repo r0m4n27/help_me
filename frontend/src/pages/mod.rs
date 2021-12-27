@@ -6,18 +6,21 @@ use crate::{
     views::nav_bar_view,
 };
 
-use self::{admin::admin_view, guest::guest_view, requested_guest::requested_guest_view};
+use self::{
+    admin::admin_view, guest::guest_view, requested_guest::requested_guest_view, tutor::tutor_view,
+};
 
 mod admin;
 mod guest;
 mod requested_guest;
+mod tutor;
 
 pub fn page_view(model: &Model) -> Node<Msg> {
     match &model.user {
         User::Guest(data) => guest_view(&data.0, model),
         User::RequestedGuest(data) => requested_guest_view(&data.task, &data.page, model),
         User::Admin(data) => admin_view(data, model),
-        User::Tutor(_) => todo!(),
+        User::Tutor(data) => tutor_view(data, model),
     }
 }
 

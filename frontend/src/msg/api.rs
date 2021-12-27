@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use seed::prelude::*;
 use serde_json::Value;
@@ -8,7 +8,7 @@ use crate::{
         admin::{create_invite, delete_invite, Invite},
         auth::{log_out, login, register, RegisterPayload, Token},
         refresh::refresh_admin,
-        task::{get_task, resolve_task, submit_task, update_task, Task},
+        task::{get_task, get_tasks, resolve_task, submit_task, update_task, Task},
         user::{delete_user, ApiUser},
         ApiResult,
     },
@@ -51,6 +51,7 @@ pub enum RequestApiMsg {
     Logout(String),
     RefreshRequestedGuest(String),
     RefreshAdmin(String),
+    RefreshTutor(String),
 }
 
 impl RequestApiMsg {
@@ -79,6 +80,9 @@ impl RequestApiMsg {
                 .map(ResponseApiMsg::RefreshRequestedGuest),
             RequestApiMsg::RefreshAdmin(token) => {
                 refresh_admin(token).await.map(ResponseApiMsg::RefreshAdmin)
+            }
+            RequestApiMsg::RefreshTutor(token) => {
+                get_tasks(token).await.map(ResponseApiMsg::RefreshTutor)
             }
             RequestApiMsg::CreateInvite(token) => create_invite(&token)
                 .await
@@ -109,6 +113,7 @@ pub enum ResponseApiMsg {
     Logout(ApiResult<Value>),
     RefreshRequestedGuest(ApiResult<Task>),
     RefreshAdmin(ApiResult<(String, Vec<Invite>, Vec<ApiUser>)>),
+    RefreshTutor(ApiResult<(String, Vec<Task>)>),
 }
 
 impl ResponseApiMsg {
@@ -127,7 +132,7 @@ impl ResponseApiMsg {
                 if &user.user_type == "admin" {
                     model.switch_to_admin(token.token, HashSet::new(), HashSet::new())
                 } else {
-                    model.switch_to_tutor(token.token)
+                    model.switch_to_tutor(token.token, HashMap::new())
                 }
                 orders.send_msg(Msg::Refresh);
             }),
@@ -145,6 +150,14 @@ impl ResponseApiMsg {
                     invites.into_iter().collect(),
                     users.into_iter().collect(),
                 )
+            }),
+            ResponseApiMsg::RefreshTutor(res) => res.map(|(token, tasks)| {
+                let map: HashMap<_, _> = tasks
+                    .into_iter()
+                    .map(|task| (task.id.clone(), task))
+                    .collect();
+
+                model.switch_to_tutor(token, map)
             }),
             ResponseApiMsg::CreateInvite(res) => {
                 res.map(|invite| model.user.as_admin(|admin| admin.add_invite(invite)))

@@ -7,6 +7,7 @@ pub mod guest;
 pub mod login;
 pub mod register;
 pub mod requested_guest;
+pub mod tutor;
 
 const LOGIN_PART: &str = "login";
 const REGISTER_PART: &str = "register";

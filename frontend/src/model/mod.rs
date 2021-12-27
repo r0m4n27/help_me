@@ -1,10 +1,10 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use seed::prelude::*;
 
 use self::{
     page::Urls,
-    user::{AdminData, GuestData, RequestedGuestData, User},
+    user::{AdminData, GuestData, RequestedGuestData, TutorData, User},
 };
 use crate::{
     api::{admin::Invite, task::Task, user::ApiUser},
@@ -77,7 +77,11 @@ impl Model {
         })
     }
 
-    pub fn switch_to_tutor(&mut self, token: String) {
-        self.user = User::Tutor(token)
+    pub fn switch_to_tutor(&mut self, token: String, tasks: HashMap<String, Task>) {
+        self.user = User::Tutor(TutorData {
+            token,
+            tasks,
+            page: self.urls.base_url.clone().into(),
+        })
     }
 }

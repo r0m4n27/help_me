@@ -47,6 +47,11 @@ impl Msg {
                             data.token.clone(),
                         ))));
                     }
+                    User::Tutor(data) => {
+                        orders.send_msg(Msg::Api(ApiMsg::Request(RequestApiMsg::RefreshTutor(
+                            data.token.clone(),
+                        ))));
+                    }
                     _ => {}
                 }
                 orders.skip();

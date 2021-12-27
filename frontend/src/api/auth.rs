@@ -39,7 +39,7 @@ pub async fn login(user_name: &str, password: &str) -> Result<ApiResult<(Token, 
 #[derive(Serialize)]
 pub struct RegisterPayload {
     user_name: String,
-    hashed_password: String,
+    password: String,
     invite_code: Option<String>,
 }
 
@@ -53,7 +53,7 @@ impl RegisterPayload {
 
         RegisterPayload {
             user_name,
-            hashed_password: hash_password(&password),
+            password: hash_password(&password),
             invite_code,
         }
     }
