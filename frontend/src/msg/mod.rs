@@ -29,8 +29,7 @@ impl Msg {
             Msg::Page(msg) => msg.update(model, orders),
             Msg::RedirectIfNotFound => {
                 if model.user.page().is_not_found() {
-                    model.urls.goto_index();
-                    model.user.change_page(model.urls.base_url.clone())
+                    model.goto_index()
                 } else {
                     orders.skip();
                 }

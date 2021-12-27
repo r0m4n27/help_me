@@ -8,7 +8,10 @@ use crate::{
         admin::{create_invite, delete_invite, Invite},
         auth::{log_out, login, register, RegisterPayload, Token},
         refresh::refresh_admin,
-        task::{get_task, get_tasks, resolve_task, submit_task, update_task, Task},
+        task::{
+            finish_task, get_task, get_tasks, process_task, resolve_task, submit_task, update_task,
+            Task,
+        },
         user::{delete_user, ApiUser},
         ApiResult,
     },
@@ -46,6 +49,8 @@ pub enum RequestApiMsg {
     CreateInvite(String),
     DeleteInvite(String, Invite),
     DeleteUser(String, ApiUser),
+    ProcessTask(String, Task),
+    FinishTask(String, Task),
     Login(String, String),
     Register(RegisterPayload),
     Logout(String),
@@ -93,6 +98,12 @@ impl RequestApiMsg {
             RequestApiMsg::DeleteUser(token, user) => delete_user(&token, user)
                 .await
                 .map(ResponseApiMsg::DeleteUser),
+            RequestApiMsg::ProcessTask(token, task) => process_task(&token, &task.id)
+                .await
+                .map(ResponseApiMsg::ProcessTask),
+            RequestApiMsg::FinishTask(token, task) => finish_task(&token, &task.id)
+                .await
+                .map(ResponseApiMsg::FinishTask),
         };
 
         match result {
@@ -109,6 +120,8 @@ pub enum ResponseApiMsg {
     CreateInvite(ApiResult<Invite>),
     DeleteInvite(ApiResult<Invite>),
     DeleteUser(ApiResult<ApiUser>),
+    ProcessTask(ApiResult<Task>),
+    FinishTask(ApiResult<Task>),
     Login(ApiResult<(Token, ApiUser)>),
     Logout(ApiResult<Value>),
     RefreshRequestedGuest(ApiResult<Task>),
@@ -168,6 +181,18 @@ impl ResponseApiMsg {
             ResponseApiMsg::DeleteUser(res) => {
                 res.map(|user| model.user.as_admin(|admin| admin.remove_user(&user)))
             }
+            ResponseApiMsg::ProcessTask(res) => res.map(|task| {
+                model.user.as_tutor(|data| {
+                    data.tasks.insert(task.id.clone(), task);
+                })
+            }),
+            ResponseApiMsg::FinishTask(res) => res.map(|task| {
+                model.user.as_tutor(|data| {
+                    data.tasks.remove(&task.id);
+                });
+
+                model.goto_index()
+            }),
         };
 
         if let ApiResult::Err(err) = res {

@@ -113,6 +113,12 @@ impl User {
         }
     }
 
+    pub fn as_tutor<F: FnOnce(&mut TutorData)>(&mut self, func: F) {
+        if let User::Tutor(data) = self {
+            func(data)
+        }
+    }
+
     pub fn as_requested_guest<F: FnOnce(&mut RequestedGuestData)>(&mut self, func: F) {
         if let User::RequestedGuest(data) = self {
             func(data)

@@ -55,7 +55,6 @@ fn guest_task_edit_view(
     title_ref: &ElRef<HtmlInputElement>,
     description_ref: &ElRef<HtmlTextAreaElement>,
 ) -> Node<Msg> {
-    // TODO: Interaction
     let buttons = div![
         C!["buttons"],
         a![

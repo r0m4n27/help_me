@@ -63,6 +63,30 @@ pub async fn resolve_task(task_id: &str) -> Result<ApiResult<Task>> {
     Ok(response)
 }
 
+pub async fn process_task(token: &str, task_id: &str) -> Result<ApiResult<Task>> {
+    let response = Request::new(&format!("/api/tasks/{}/start", task_id))
+        .method(Method::Post)
+        .bearer(token)
+        .fetch()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response)
+}
+
+pub async fn finish_task(token: &str, task_id: &str) -> Result<ApiResult<Task>> {
+    let response = Request::new(&format!("/api/tasks/{}/complete", task_id))
+        .method(Method::Post)
+        .bearer(token)
+        .fetch()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response)
+}
+
 pub async fn update_task(task_id: &str, title: &str, description: &str) -> Result<ApiResult<Task>> {
     let payload = json!({
         "title": title,
@@ -102,25 +126,3 @@ pub async fn get_tasks(token: String) -> Result<ApiResult<(String, Vec<Task>)>> 
 
     Ok(response.map(|tasks| (token, tasks)))
 }
-
-// pub async fn process_task(token: &str, task_id: &str) -> Result<ApiResult<Value>> {
-//     let response = Request::post(&format!("/api/tasks/{}/start", task_id))
-//         .bearer(token)
-//         .send()
-//         .await?
-//         .json()
-//         .await?;
-
-//     Ok(response)
-// }
-
-// pub async fn finish_task(token: &str, task_id: &str) -> Result<ApiResult<Value>> {
-//     let response = Request::post(&format!("/api/tasks/{}/complete", task_id))
-//         .bearer(token)
-//         .send()
-//         .await?
-//         .json()
-//         .await?;
-
-//     Ok(response)
-// }

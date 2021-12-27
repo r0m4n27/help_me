@@ -11,7 +11,7 @@ pub mod tutor;
 
 const LOGIN_PART: &str = "login";
 const REGISTER_PART: &str = "register";
-// const TASK_PART: &str = "task";
+const TASK_PART: &str = "task";
 
 pub struct Urls {
     pub base_url: Url,
@@ -32,6 +32,10 @@ impl Urls {
 
     pub fn register(&self) -> Url {
         self.index().add_path_part(REGISTER_PART)
+    }
+
+    pub fn task(&self, task_id: &str) -> Url {
+        self.index().add_path_part(TASK_PART).add_path_part(task_id)
     }
 
     pub fn goto_index(&self) {

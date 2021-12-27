@@ -84,4 +84,9 @@ impl Model {
             page: self.urls.base_url.clone().into(),
         })
     }
+
+    pub fn goto_index(&mut self) {
+        self.urls.goto_index();
+        self.user.change_page(self.urls.base_url.clone())
+    }
 }
