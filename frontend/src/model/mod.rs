@@ -35,6 +35,7 @@ impl Model {
             .subscribe(|_: ChangeUrlToken| Msg::RedirectIfNotFound)
             .subscribe(|_: RefreshToken| Msg::Refresh)
             .stream(streams::interval(30_000, || Msg::Refresh))
+            .stream(streams::window_event(Ev::Focus, |_| Msg::Refresh))
             .notify(RefreshToken)
             .notify(ChangeUrlToken);
 
