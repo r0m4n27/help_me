@@ -29,6 +29,7 @@ pub fn tutor_task_view(task: &Task) -> Node<Msg> {
         title: &task.title,
         description: &task.body,
         buttons,
+        sub_header: None,
     };
 
     task_view(task_view_props)

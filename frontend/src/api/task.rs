@@ -16,6 +16,7 @@ pub struct Task {
     pub body: String,
     pub state: String,
     created_at: String,
+    pub how_many_ahead: usize,
 }
 
 impl Task {

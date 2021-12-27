@@ -40,11 +40,13 @@ fn guest_task_default_view(task: &Task) -> Node<Msg> {
         ]
     ];
 
+    let how_many_ahead = format!("Queue: {}", task.how_many_ahead);
     let task_view_props = TaskViewProps {
         header: "Request Submitted",
         title: &task.title,
         description: &task.body,
         buttons,
+        sub_header: Some(&how_many_ahead),
     };
 
     task_view(task_view_props)

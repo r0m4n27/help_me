@@ -4,18 +4,29 @@ use crate::msg::Msg;
 
 pub struct TaskViewProps<'a> {
     pub header: &'a str,
+    pub sub_header: Option<&'a str>,
     pub title: &'a str,
     pub description: &'a str,
     pub buttons: Node<Msg>,
 }
 
 pub fn task_view(props: TaskViewProps) -> Node<Msg> {
+    let sub_header = if let Some(sub_header) = props.sub_header {
+        div![
+            C!["content", "has-text-centered"],
+            p![C!["title", "has-text-dark", "is-4"], sub_header],
+        ]
+    } else {
+        div![]
+    };
+
     div![
         C!["box"],
         div![
             C!["content", "has-text-centered"],
             p![C!["title", "has-text-dark", "is-2"], props.header]
         ],
+        sub_header,
         div![
             C!["content"],
             p![

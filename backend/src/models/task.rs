@@ -9,11 +9,11 @@ use super::{generate_random_string, QueriesResult};
 
 #[derive(Debug, FromRow, Serialize)]
 pub struct Task {
-    id: String,
-    title: String,
-    body: String,
-    state: String,
-    created_at: String,
+    pub id: String,
+    pub title: String,
+    pub body: String,
+    pub state: String,
+    pub created_at: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -203,5 +203,18 @@ impl<'a> TaskQueries<'a> {
         debug!("Edited body of {}", id);
 
         Ok(())
+    }
+
+    pub async fn how_many_ahead(&self, task: &Task) -> QueriesResult<usize> {
+        let all_tasks = self.get_tasks().await?;
+
+        let pos = all_tasks
+            .iter()
+            .position(|t| t.id == task.id)
+            .ok_or_else(|| {
+                QueriesError::ItemNotFound(format!("Can't find task with id {}", task.id))
+            })?;
+
+        Ok(pos)
     }
 }
