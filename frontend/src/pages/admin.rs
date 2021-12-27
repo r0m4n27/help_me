@@ -3,7 +3,7 @@ use seed::prelude::*;
 use crate::{
     model::{page::admin::AdminPage, user::AdminData, Model},
     msg::Msg,
-    views::{invites_view, users_view},
+    views::{invites_view, settings_view, users_view},
 };
 
 use super::hero_view;
@@ -22,5 +22,6 @@ pub fn admin_view(data: &AdminData, model: &Model) -> Node<Msg> {
             model,
         ),
         AdminPage::NotFound => hero_view(div![], model),
+        AdminPage::Settings(data) => hero_view(settings_view(data), model),
     }
 }

@@ -1,10 +1,10 @@
-use blake2::{Blake2b512, Digest};
 use seed::fetch::Result;
 use seed::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use super::{
+    hash_password,
     user::{get_user, ApiUser},
     ApiResult, BearerRequest,
 };
@@ -86,11 +86,4 @@ pub async fn log_out(token: &str) -> Result<ApiResult<Value>> {
         .await?;
 
     Ok(response)
-}
-
-fn hash_password(password: &str) -> String {
-    let mut hasher = Blake2b512::new();
-    hasher.update(password.as_bytes());
-
-    format!("{:x}", hasher.finalize())
 }

@@ -1,3 +1,4 @@
+use blake2::{Blake2b512, Digest};
 use seed::prelude::*;
 
 use serde::{Deserialize, Serialize};
@@ -50,4 +51,11 @@ impl BearerRequest for Request<'_> {
     fn bearer(self, token: &str) -> Self {
         self.header(Header::authorization(format!("bearer {}", token)))
     }
+}
+
+fn hash_password(password: &str) -> String {
+    let mut hasher = Blake2b512::new();
+    hasher.update(password.as_bytes());
+
+    format!("{:x}", hasher.finalize())
 }

@@ -12,8 +12,8 @@ use crate::{
             finish_task, get_task, get_tasks, process_task, resolve_task, submit_task, update_task,
             Task,
         },
-        user::{delete_user, ApiUser},
-        ApiResult,
+        user::{change_password, change_username, delete_user, ApiUser},
+        ApiError, ApiResult,
     },
     model::Model,
 };
@@ -57,6 +57,8 @@ pub enum RequestApiMsg {
     RefreshRequestedGuest(String),
     RefreshAdmin(String),
     RefreshTutor(String),
+    ChangeUsername(String, String, String),
+    ChangePassword(String, String, String),
 }
 
 impl RequestApiMsg {
@@ -104,6 +106,26 @@ impl RequestApiMsg {
             RequestApiMsg::FinishTask(token, task) => finish_task(&token, &task.id)
                 .await
                 .map(ResponseApiMsg::FinishTask),
+            RequestApiMsg::ChangeUsername(token, user_name, user_name_again) => {
+                if user_name == user_name_again {
+                    change_username(&token, &user_name).await
+                } else {
+                    Ok(ApiResult::Err(ApiError {
+                        message: "Usernames don't match!".to_string(),
+                    }))
+                }
+                .map(ResponseApiMsg::ChangedSettings)
+            }
+            RequestApiMsg::ChangePassword(token, password, password_again) => {
+                if password == password_again {
+                    change_password(&token, &password).await
+                } else {
+                    Ok(ApiResult::Err(ApiError {
+                        message: "Passwords don't match!".to_string(),
+                    }))
+                }
+                .map(ResponseApiMsg::ChangedSettings)
+            }
         };
 
         match result {
@@ -127,6 +149,7 @@ pub enum ResponseApiMsg {
     RefreshRequestedGuest(ApiResult<Task>),
     RefreshAdmin(ApiResult<(String, Vec<Invite>, Vec<ApiUser>)>),
     RefreshTutor(ApiResult<(String, Vec<Task>)>),
+    ChangedSettings(ApiResult<Value>),
 }
 
 impl ResponseApiMsg {
@@ -194,6 +217,7 @@ impl ResponseApiMsg {
 
                 model.goto_index()
             }),
+            ResponseApiMsg::ChangedSettings(res) => res.map(|_| model.goto_index()),
         };
 
         if let ApiResult::Err(err) = res {

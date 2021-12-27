@@ -30,6 +30,8 @@ pub enum PageMsg {
     DeleteUser(ApiUser),
     Process(Task),
     Finish(Task),
+    ChangeUsername,
+    ChangePassword,
 }
 
 impl PageMsg {
@@ -180,6 +182,50 @@ impl PageMsg {
                         task,
                     ))));
             }),
+            PageMsg::ChangeUsername => {
+                if let Some(data) = model.user.page().settings_data() {
+                    if let Some(token) = model.user.get_token() {
+                        let user_name = data
+                            .user_name_ref
+                            .get()
+                            .expect("User name not initialised!")
+                            .value();
+                        let user_name_again = data
+                            .user_name_again_ref
+                            .get()
+                            .expect("User name not initialised!")
+                            .value();
+
+                        orders.skip().send_msg(Msg::Api(ApiMsg::Request(
+                            RequestApiMsg::ChangeUsername(
+                                token.clone(),
+                                user_name,
+                                user_name_again,
+                            ),
+                        )));
+                    }
+                }
+            }
+            PageMsg::ChangePassword => {
+                if let Some(data) = model.user.page().settings_data() {
+                    if let Some(token) = model.user.get_token() {
+                        let password = data
+                            .password_ref
+                            .get()
+                            .expect("Password not initialised!")
+                            .value();
+                        let password_again = data
+                            .password_again_ref
+                            .get()
+                            .expect("Password not initialised!")
+                            .value();
+
+                        orders.skip().send_msg(Msg::Api(ApiMsg::Request(
+                            RequestApiMsg::ChangePassword(token.clone(), password, password_again),
+                        )));
+                    }
+                }
+            }
         }
     }
 }

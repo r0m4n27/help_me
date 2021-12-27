@@ -4,6 +4,8 @@ use seed::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
+use crate::api::hash_password;
+
 use super::{ApiResult, BearerRequest};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Hash)]
@@ -61,4 +63,34 @@ pub async fn delete_user(token: &str, user: ApiUser) -> Result<ApiResult<ApiUser
         .await?;
 
     Ok(response.map(|_| user))
+}
+
+pub async fn change_username(token: &str, user_name: &str) -> Result<ApiResult<Value>> {
+    let payload = json!({ "user_name": user_name });
+
+    let response = Request::new("/api/user")
+        .method(Method::Patch)
+        .bearer(token)
+        .json(&payload)?
+        .fetch()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response)
+}
+
+pub async fn change_password(token: &str, password: &str) -> Result<ApiResult<Value>> {
+    let payload = json!({ "password": hash_password(password) });
+
+    let response = Request::new("/api/user")
+        .method(Method::Patch)
+        .bearer(token)
+        .json(&payload)?
+        .fetch()
+        .await?
+        .json()
+        .await?;
+
+    Ok(response)
 }

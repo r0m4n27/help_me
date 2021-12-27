@@ -3,7 +3,7 @@ use seed::prelude::*;
 use crate::{
     model::{page::tutor::TutorPage, user::TutorData, Model},
     msg::Msg,
-    views::{tasks_list_view, tutor_task_view},
+    views::{settings_view, tasks_list_view, tutor_task_view},
 };
 
 use super::hero_view;
@@ -17,5 +17,6 @@ pub fn tutor_view(data: &TutorData, model: &Model) -> Node<Msg> {
         TutorPage::Task { task_id, .. } => {
             hero_view(tutor_task_view(data.tasks.get(task_id).unwrap()), model)
         }
+        TutorPage::Settings(data) => hero_view(settings_view(data), model),
     }
 }

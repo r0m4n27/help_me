@@ -61,6 +61,10 @@ impl Page for GuestPage {
             None
         }
     }
+
+    fn settings_data(&self) -> Option<&super::settings::SettingsPageData> {
+        None
+    }
 }
 
 pub struct GuestIndexData {

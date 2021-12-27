@@ -85,11 +85,26 @@ fn nav_bar_items(model: &Model) -> Node<Msg> {
         ]
     ];
 
+    let settings = match model.user {
+        User::Guest(_) | User::RequestedGuest(_) => div![],
+        User::Admin(_) | User::Tutor(_) => div![
+            C!["navbar-item"],
+            a![
+                C!["title", "is-5", "has-text-white"],
+                "Settings",
+                attrs! {
+                    At::Href => model.urls.settings()
+                }
+            ]
+        ],
+    };
+
     div![
         C!["navbar-menu", IF!(model.expanded_menu => "is-active")],
         attrs! {
             At::Id => "navbarBasic",
         },
-        div![C!["navbar-end"], github, div![C!["navbar-item"], button]]
+        div![C!["navbar-start"], settings],
+        div![C!["navbar-end"], div![C!["navbar-item"], github, button]]
     ]
 }

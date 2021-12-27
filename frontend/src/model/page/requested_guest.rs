@@ -71,6 +71,10 @@ impl Page for RequestedGuestPage {
             None
         }
     }
+
+    fn settings_data(&self) -> Option<&super::settings::SettingsPageData> {
+        None
+    }
 }
 
 pub enum RequestedGuestIndexData {
