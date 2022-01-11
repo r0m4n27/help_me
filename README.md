@@ -28,7 +28,7 @@ Earlier versions of the frontend used [yew](https://yew.rs/) and [yedux](https:/
 
 ```sh
 rustup target add wasm32-unknown-unknown
-cargo install sqlx-cli --no-default-features --features sqlite
+cargo install sqlx-cli --no-default-features --features sqlite,native-tls
 cargo install trunk wasm-bindgen-cli
 ```
 
